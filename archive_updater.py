@@ -86,8 +86,17 @@ def download():
         else:
             dir='./novel_list/'+code+' '+name
         dirlist=os.listdir('./novel_list/')
+        bool='false'
+        for file in dirlist:
+            if (file[:7]==code):
+                bool='true'
+        if bool=='true':
+            continue
+
         if code+' '+name not in dirlist:
             os.mkdir('%s'%dir)
+        else:
+            continue
 
         print("dir=  "+dir)
 
