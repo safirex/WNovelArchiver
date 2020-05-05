@@ -43,6 +43,7 @@ def updateArchive():
 
 
 def getInputFile():
+
     inputfile=open('input.txt','r+', encoding='utf-8')
     line=inputfile.readline()
     cnt=0
@@ -69,16 +70,25 @@ def download():
         code=novel_info[0]
         if code=='':
             continue
+
         name=novel_info[1]
         print('i '+name)
         if (name==''):
-            name='./novel_list'
-
+            name='./novel_list/'
+            #name+=novel.getname
         else:
-            name='./novel_list'+name
-        if len(code==7):
+            name='./novel_list/'+code+' '+name
+
+
+        dirlist=os.listdir('./novel_list/')
+        if name not in dirlist:
+            os.mkdir('%s'%name)
+
+
+
+        if (len(code)==7):
             #syosetu code/directory+novelname/last chapter downloaded
-            syosetuDL.processSyosetuNovel(code,name,-1)
+            syosetuDL.processSyosetuNovel(code,name,0)
 
 
 
@@ -86,13 +96,20 @@ type=''
 for arg in sys.argv:
     type=arg
 
+updateInput='u'
+downloadInput='d'
+
+
+
 if(type==''):
     input=input("update archive (a) or download (d) ?  ")
-    if (input=='a'):
+    if (input==updateInput):
         updateArchive()
-    elif (input=='d'):
+    elif (input==downloadInput):
         download()
-elif(type=='a'):
+
+if(type==updateInput):
     updateArchive()
-else:
+
+if(type==downloadInput):
     download()
