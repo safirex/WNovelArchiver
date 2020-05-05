@@ -1,0 +1,27 @@
+# WNovelArchiver
+A simple python script to easily download and keep up to date raw web-novels on syosetu (only, atm)
+
+If your connection isn't stable, the script may crash while downloading.
+### Features:
+* batch download (1 to max) from the input.txt
+* update chapters of all the novels in the /novel_list/ directory
+
+### Sites featured:
+* Syosetu (ncode)
+* Kakyomu (coming soon)
+
+
+## Build
+Clone or download the repo  <br>
+<code>cd WNovelArchiver</code><br>
+<code>python archive_updater.py</code><br>
+You may use arguments (<b>a</b> or <b>d</b>)
+
+
+## Instructions
+The script can be launched by either arguments or inputs :
+* <b>a</b> to update the current novels
+* <b>d</b> to download all novels in the <i>input.txt</i>
+
+The file should be in csv style (code;novelname):<br>
+![r](https://image.prntscr.com/image/9VS7bCmcSSmdOlt02XcXmg.png)<br>The novel name can be let empty, in this case the script will fetch the novel name from the site<br><br>
