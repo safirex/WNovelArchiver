@@ -18,7 +18,9 @@ def updateArchive():
         #let's change the fetching process behaviour following the site it's hosted on
         novel=Downloaders.Novel(code,novel_name)
         novel=novel.updateObject()
-
+        if(novel==0):
+            print(novel_directory+' couldnt be updated')
+            continue
         #now we fetch the local chapters and get the last chapter stored
         chapter_list=os.listdir('./novel_list/%s'%novel_directory)
         last_downloaded=0

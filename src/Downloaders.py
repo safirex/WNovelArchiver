@@ -15,14 +15,24 @@ class Novel:
     def processNovel(self) -> str:
         """"will process the html and download the chapter"""
         pass
+
+    def getNovelTitle(self) -> str:
+        """"fetch the novel title from the TOC page"""
+        pass
+
+
     #will instanciate an object depending of the code
     def updateObject(self):
         if (len(self.code)==7 and self.code.find('n')==0):
             return SyosetuNovel(self)
-        elif(len(self.code)>7):
-            return KakyomuNovel(self)
+        elif(len(self.code)==len('1177354054888541019')):
+            return KakuyomuNovel(self)
         else:
             return 0
+
+
+
+
 
     def createFile(self,chapterNumber,chapter_title,chapter_content):
         file = open('%s\%d_%s.txt'%(self.getDir(),chapterNumber,chapter_title), 'w+', encoding='utf-8')
@@ -44,9 +54,6 @@ class Novel:
 class SyosetuNovel(Novel):
     def __init__(self,Novel):
         super().__init__(Novel.code,Novel.titre)
-    def download(self):
-        print("roar")
-        return 'syos'
 
     def processNovel(self):
         print("sysosetu novel "+self.titre)
@@ -127,9 +134,81 @@ class SyosetuNovel(Novel):
         writer=re.findall(r'<p class="novel_title">(.*?)</p>',html,re.S)
         return writer[0]
 
-class KakyomuNovel(Novel):
+class KakuyomuNovel(Novel):
     def __init__(self,Novel):
         super().__init__(Novel.code,Novel.titre)
-    def download(self):
-        print("pas rora")
-        return 'kaky'
+
+    def getChapterTitle(self,str):
+        chapter_title=re.findall('<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<',str)[0]
+        return chapter_title
+
+
+
+    def processNovel(self):
+        print("Kakuyomu novel "+self.titre)
+        print('last chapter: '+str(self.getLastChapter()))
+        url='https://kakuyomu.jp/works/%s'%self.code
+        print('accessing '+url)
+        chapterListDiv='/works/%s/episodes/(.*?)"'%self.code
+        headers = {"user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
+        rep=requests.get(url,headers=headers)
+        rep.encoding='utf-8'
+        html=rep.text
+        chapList=re.findall(chapterListDiv,html,re.DOTALL)[1:]
+        chapList=chapList[self.getLastChapter():]
+        print()
+        print("there are %d chapters to udpate"%len(chapList))
+        print(chapList)
+        print()
+        for chap in chapList: #last chapter = 0 at beginning
+            self.setLastChapter(self.getLastChapter()+1)
+            chapter_url=url+'/episodes/'+chap
+            print('chapter: '+str(self.getLastChapter())+'  '+chapter_url)
+            self.processChapter(chapter_url)
+
+
+    def processChapter(self,chapter_url):
+        rep=requests.get(chapter_url)#,headers=headers)
+        html=rep.text
+        chapter_title=self.getChapterTitle(html)
+        content=re.findall('<p id="p.*">(.*?)</p>',html)
+        contentUPDATED=[]
+        for sentence in content:
+            sentence = sentence.replace('<br />','\n')
+            sentence = sentence.replace('<ruby>','')
+            sentence = sentence.replace('</ruby>','')
+            sentence = sentence.replace('<rp>','')
+            sentence = sentence.replace('</rp>','')
+            sentence = sentence.replace('<rt>','')
+            sentence = sentence.replace('</rt>','')
+            sentence = sentence.replace('<rb>','')
+            #signal character superpose
+            sentence = sentence.replace('</rb>','//')
+            sentence += '\n'
+            contentUPDATED.append(sentence)
+
+        self.createFile(chapter_title,contentUPDATED,chapter_url)
+
+
+    def createFile(self,chapter_title,chapter_content,chapter_url):
+         #写入
+        file = open('%s\%d_%s.txt'%(self.getDir(),self.getLastChapter(),chapter_title), 'w+', encoding='utf-8')
+        file.write(chapter_url+'\n')
+        file.write(chapter_title+'\n')
+        for sentence in chapter_content:
+            file.write(sentence)
+        file.close()
+
+
+
+
+    def getNovelTitle(self):
+        titlediv='<h1 id="workTitle"><a href="/works/%s">'%self.code
+        url='https://kakuyomu.jp/works/%s'%self.code
+        headers = {"user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
+        rep=requests.get(url,headers=headers)
+        rep.encoding='utf-8'
+        html=rep.text
+        titlediv1=html.find(titlediv)+len(titlediv)
+        endTitleDiv=html[titlediv1:].find('</a>')+titlediv1
+        return html[titlediv1:endTitleDiv]

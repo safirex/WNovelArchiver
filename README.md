@@ -1,5 +1,5 @@
 # WNovelArchiver
-A simple python script to easily download and keep up to date raw web-novels on syosetu (only, atm)
+A simple python script to easily download and keep up to date raw web-novels on syosetu and kakuyomu
 
 If your connection isn't stable, the script may crash while downloading.
 ### Features:
@@ -8,7 +8,7 @@ If your connection isn't stable, the script may crash while downloading.
 
 ### Sites featured:
 * Syosetu (ncode)
-* Kakyomu (coming soon)
+* Kakuyomu
 
 
 ## Build
