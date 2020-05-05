@@ -6,14 +6,14 @@ import ctypes
 import sys
 
 def validateTitle(title):
-    rstr = r"[\/\\\:\*\?\"\<\>\|]"  # '/ \ : * ? " < > |'
-    new_title = re.sub(rstr, "_", title)  # 替换为下划线
+    rstr = r"[\/\\\:\*\?\"\<\>\|]"
+    new_title = re.sub(rstr, "_", title)
     return new_title
 
-def createFile(title,i,chapter_title,chapter_content):
-     #写入
-    file = open('%s\%d_%s.txt'%(title,i,chapter_title), 'w+', encoding='utf-8')
-    i+=1#章节自增
+def createFile(dirName,i,chapter_title,chapter_content):
+
+    file = open('%s\%d_%s.txt'%(dirName,i,chapter_title), 'w+', encoding='utf-8')
+    i+=1
     file.write(chapter_title)
     file.write(chapter_content)
     file.close()
@@ -37,7 +37,7 @@ def processSyosetuNovel(code,novel_name,lastDL):
     print(online_chapter_list)
 
     chapter_list=re.findall(r'<a href="(.*?)">(.*?)<',str(chapter_list))
-    
+
     #here begins the chapters handling
     i=lastDL+1
     for x in chapter_list:
