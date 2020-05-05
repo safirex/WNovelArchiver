@@ -15,12 +15,12 @@ If your connection isn't stable, the script may crash while downloading.
 Clone or download the repo  <br>
 <code>cd WNovelArchiver</code><br>
 <code>python archive_updater.py</code><br>
-You may use arguments (<b>a</b> or <b>d</b>)
+You may use arguments (<b>u</b> or <b>d</b>)
 
 
 ## Instructions
 The script can be launched by either arguments or inputs :
-* <b>a</b> to update the current novels
+* <b>u</b> to update the current novels
 * <b>d</b> to download all novels in the <i>input.txt</i>
 
 The file should be in csv style (code;novelname):<br>

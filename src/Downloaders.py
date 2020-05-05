@@ -115,7 +115,17 @@ class SyosetuNovel(Novel):
         new_title = re.sub(rstr, "_", title)
         return new_title
 
+    def getNovelTitle(self):
+        url='https://ncode.syosetu.com/%s/'%self.code
+        headers = {"user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
+        print('accessing: '+url)
+        print()
+        rep=requests.get(url,headers=headers)
+        rep.encoding='utf-8'
+        html=rep.text
 
+        writer=re.findall(r'<p class="novel_title">(.*?)</p>',html,re.S)
+        return writer[0]
 
 class KakyomuNovel(Novel):
     def __init__(self,Novel):

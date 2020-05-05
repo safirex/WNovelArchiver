@@ -73,10 +73,14 @@ def download():
         #print('i '+name)
 
         novel=Downloaders.Novel(code,name)
+        novel=novel.updateObject()
         dir=''
         if (name==''):
             dir='./novel_list/'
-            #name+=novel.getname
+            name=novel.getNovelTitle()
+            print(name)
+            dir+=code+' '+name
+            print(dir)
         else:
             dir='./novel_list/'+code+' '+name
         dirlist=os.listdir('./novel_list/')
@@ -85,7 +89,6 @@ def download():
 
         print("dir=  "+dir)
 
-        novel=novel.updateObject()
         novel.setDir(dir)
         novel.setLastChapter(0)
         novel.processNovel()
