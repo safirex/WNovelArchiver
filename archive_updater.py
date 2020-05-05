@@ -1,15 +1,10 @@
 # coding: utf-8
-
 import os
 import sys
-
 cwd=os.getcwd()
 sys.path.insert(1,cwd+'\\src')
 
-import syosetuDL
-
-
-
+import Downloaders
 
 
 def updateArchive():
@@ -18,6 +13,13 @@ def updateArchive():
         code=novel_directory.find(' ')
         novel_name=novel_directory[code:]
         code=novel_directory[:code]
+        #here we got the novel code and our folder name
+
+        #let's change the fetching process behaviour following the site it's hosted on
+        novel=Downloaders.Novel(code,novel_name)
+        novel=novel.updateObject()
+
+        #now we fetch the local chapters and get the last chapter stored
         chapter_list=os.listdir('./novel_list/%s'%novel_directory)
         last_downloaded=0
         for chap in chapter_list:
@@ -26,18 +28,12 @@ def updateArchive():
             tmp=int(tmp)
             if(last_downloaded<tmp):
                 last_downloaded=tmp
-        print('last chapter: '+str(last_downloaded))
+        novel.setLastChapter(last_downloaded)
+        #now that we have the number of the last chapter and the novel code
+        #let's update the archive
 
-        #now that we have the last chapter and the novel code let's update the archive
-
-        if(len(code)==7 and code.find('n')==0):
-            print("sysosetu novel "+novel_name)
-            novel_name='novel_list\\'+code+novel_name
-            syosetuDL.processSyosetuNovel(code,novel_name,last_downloaded)
-
-
-
-
+        novel.setDir('novel_list\\'+code+novel_name)
+        novel.processNovel()
 
 
 
@@ -56,53 +52,58 @@ def getInputFile():
         novel_list.append([code,novel_name])
         line = inputfile.readline()
     inputfile.close()
-    print('list= ')
+    #print('list= ')
 
     # novel_list[]= [code,name]
-    print(novel_list)
+    #print(novel_list)
     return novel_list
+
+
+
 
 
 def download():
     novel_list=getInputFile()
     for novel_info in novel_list:
-
         code=novel_info[0]
         if code=='':
             continue
 
         name=novel_info[1]
-        print('i '+name)
+        #print('i '+name)
+
+        novel=Downloaders.Novel(code,name)
+        dir=''
         if (name==''):
-            name='./novel_list/'
+            dir='./novel_list/'
             #name+=novel.getname
         else:
-            name='./novel_list/'+code+' '+name
-
-
+            dir='./novel_list/'+code+' '+name
         dirlist=os.listdir('./novel_list/')
-        if name not in dirlist:
-            os.mkdir('%s'%name)
+        if code+' '+name not in dirlist:
+            os.mkdir('%s'%dir)
 
+        print("dir=  "+dir)
 
-
-        if (len(code)==7):
-            #syosetu code/directory+novelname/last chapter downloaded
-            syosetuDL.processSyosetuNovel(code,name,0)
+        novel=novel.updateObject()
+        novel.setDir(dir)
+        novel.setLastChapter(0)
+        novel.processNovel()
 
 
 
 type=''
 for arg in sys.argv:
     type=arg
+    print(arg)
 
 updateInput='u'
 downloadInput='d'
 
 
-
-if(type==''):
-    input=input("update archive (a) or download (d) ?  ")
+if(type=='' or type == 'archive_updater.py'):
+    print('el ye')
+    input=input("update archive (%s) or download (%s) ?  "%(updateInput,downloadInput))
     if (input==updateInput):
         updateArchive()
     elif (input==downloadInput):

@@ -50,9 +50,12 @@ class SyosetuNovel(Novel):
 
     def processNovel(self):
         print("sysosetu novel "+self.titre)
+        print('last chapter: '+str(self.getLastChapter()))
+
         url='https://ncode.syosetu.com/%s/'%self.code
         headers = {"user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
         print('accessing: '+url)
+        print()
         rep=requests.get(url,headers=headers)
         rep.encoding='utf-8'
         html=rep.text
