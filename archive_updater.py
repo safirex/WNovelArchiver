@@ -8,21 +8,22 @@ import Downloaders
 
 
 def updateArchive():
-    for novel_directory in os.listdir('./novel_list'):
+    for novel_folder in os.listdir('./novel_list'):
         print()
-        code=novel_directory.find(' ')
-        novel_name=novel_directory[code:]
-        code=novel_directory[:code]
+        code=novel_folder.find(' ')
+        novel_name=novel_folder[code:]
+        code=novel_folder[:code]
         #here we got the novel code and our folder name
 
         #let's change the fetching process behaviour following the site it's hosted on
         novel=Downloaders.Novel(code,novel_name)
         novel=novel.updateObject()
         if(novel==0):
-            print(novel_directory+' couldnt be updated')
+            print(novel_folder+' couldnt be updated')
             continue
         #now we fetch the local chapters and get the last chapter stored
-        chapter_list=os.listdir('./novel_list/%s'%novel_directory)
+
+        chapter_list=os.listdir('./novel_list/%s'%novel_folder)
         last_downloaded=0
         for chap in chapter_list:
             n=chap.find('_')
@@ -34,7 +35,7 @@ def updateArchive():
         #now that we have the number of the last chapter and the novel code
         #let's update the archive
 
-        novel.setDir('novel_list\\'+code+novel_name)
+        novel.setDir('./novel_list/'+code+novel_name)
         novel.processNovel()
 
 
@@ -91,18 +92,50 @@ def download():
             if (file[:7]==code):
                 bool='true'
         if bool=='true':
+            print('folder with same code already exists')
             continue
 
         if code+' '+name not in dirlist:
             os.mkdir('%s'%dir)
         else:
+            print('folder already imported, update to keep up with site')
             continue
 
         print("dir=  "+dir)
-
+        #dir='./novel_list/'+code+' '+name
         novel.setDir(dir)
         novel.setLastChapter(0)
         novel.processNovel()
+
+def getFolderStatus():
+    dir='./novel_list'
+    statusList=[]
+    for novel_folder in os.listdir(dir):
+        code=novel_folder.find(' ')
+        if code==-1:
+            print(code)
+            continue
+        novel_name=novel_folder[code:]
+        code=novel_folder[:code]
+
+        novel=Downloaders.Novel(code,novel_name)
+        lastchap=0
+        for file in os.listdir(dir+'/'+novel_folder):
+            chapnum=file.find('_')
+            chapnum=int(file[:chapnum])
+            if(chapnum>lastchap):
+                lastchap=chapnum
+        statusList.append([code,lastchap,novel_name])
+        print('%s %s %s'%(code,lastchap,novel_name))
+    enterInCSV(dir+'/status.csv',statusList)
+    #print(statusList)
+
+def enterInCSV(filename,tab):
+
+    file = open(filename, 'w+', encoding='utf-8')
+    for line in tab:
+        file.write('%1s %1s %2s\n'%(line[0],line[1],line[2]))
+    file.close()
 
 
 
@@ -113,6 +146,7 @@ for arg in sys.argv:
 
 updateInput='u'
 downloadInput='d'
+statusInput='s'
 
 
 if(type=='' or type == 'archive_updater.py'):
@@ -122,9 +156,15 @@ if(type=='' or type == 'archive_updater.py'):
         updateArchive()
     elif (input==downloadInput):
         download()
+    elif (input==statusInput):
+        getFolderStatus()
+
+
+if(type==downloadInput):
+    download()
 
 if(type==updateInput):
     updateArchive()
 
-if(type==downloadInput):
-    download()
+if(type==statusInput):
+    getFolderStatus()

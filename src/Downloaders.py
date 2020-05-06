@@ -35,6 +35,7 @@ class Novel:
 
 
     def createFile(self,chapterNumber,chapter_title,chapter_content):
+        chapter_title=checkTitle(chapter_title)
         file = open('%s\%d_%s.txt'%(self.getDir(),chapterNumber,chapter_title), 'w+', encoding='utf-8')
         file.write(chapter_title)
         file.write(chapter_content)
@@ -171,6 +172,7 @@ class KakuyomuNovel(Novel):
         rep=requests.get(chapter_url)#,headers=headers)
         html=rep.text
         chapter_title=self.getChapterTitle(html)
+        print(chapter_title)
         content=re.findall('<p id="p.*">(.*?)</p>',html)
         contentUPDATED=[]
         for sentence in content:
@@ -187,12 +189,13 @@ class KakuyomuNovel(Novel):
             sentence += '\n'
             contentUPDATED.append(sentence)
 
+
         self.createFile(chapter_title,contentUPDATED,chapter_url)
 
 
     def createFile(self,chapter_title,chapter_content,chapter_url):
-         #写入
-        file = open('%s\%d_%s.txt'%(self.getDir(),self.getLastChapter(),chapter_title), 'w+', encoding='utf-8')
+        chapter_title=checkTitle(chapter_title)
+        file = open('%s/%d_%s.txt'%(self.getDir(),self.getLastChapter(),chapter_title), 'w+', encoding='utf-8')
         file.write(chapter_url+'\n')
         file.write(chapter_title+'\n')
         for sentence in chapter_content:
@@ -212,3 +215,19 @@ class KakuyomuNovel(Novel):
         titlediv1=html.find(titlediv)+len(titlediv)
         endTitleDiv=html[titlediv1:].find('</a>')+titlediv1
         return html[titlediv1:endTitleDiv]
+
+
+
+
+def checkTitle(str):
+    str=str.replace('?','')
+    str=str.replace('!','')
+    str=str.replace(':','')
+    str=str.replace('"','')
+    str=str.replace('*','')
+    str=str.replace('/','')
+    str=str.replace('\\','')
+    str=str.replace('|','')
+    str=str.replace('<','')
+    str=str.replace('>','')
+    return str
