@@ -27,6 +27,8 @@ class Novel:
             return SyosetuNovel(self)
         elif(len(self.code)==len('1177354054888541019')):
             return KakuyomuNovel(self)
+        elif(len(self.code)==10 and self.code.find('n18')==0):
+            return N18SyosetuNovel(self)
         else:
             return 0
 
@@ -36,6 +38,7 @@ class Novel:
 
     def createFile(self,chapterNumber,chapter_title,chapter_content):
         chapter_title=checkTitle(chapter_title)
+        print('saving '+chapter_title)
         file = open('%s\%d_%s.txt'%(self.getDir(),chapterNumber,chapter_title), 'w+', encoding='utf-8')
         file.write(chapter_title)
         file.write(chapter_content)
@@ -218,6 +221,142 @@ class KakuyomuNovel(Novel):
 
 
 
+class N18SyosetuNovel(Novel):
+    def __init__(self,novel):
+        super().__init__(novel.code[3:],novel.titre)
+        self.site='https://novel18.syosetu.com'
+    def createFile(self,chapterNumber,chapter_title,chapter_content):
+        print(self.dir)
+        super.createFile(chapterNumber,chapter_title,chapter_content)
+
+    def processNovel(self):
+
+
+        print("sysosetu novel "+self.titre)
+        print('last chapter: '+str(self.getLastChapter()))
+
+
+        url=self.site+'/%s/'%self.code
+
+        headers = {"user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
+        print('accessing: '+url)
+        print()
+        print(url)
+        #https://novel18.syosetu.com/n8321do/
+        #autologin,
+        cookies={'autologin':'1872412%3C%3E014ebbec6d4b5ba4b35b8b5853e19625f9e6bf77eb2609658c927a0a8b4989b6'}
+        rep=requests.get(url,cookies=cookies)#,headers=headers)
+        rep.encoding='utf-8'
+        html=rep.text
+        print(html)
+        print(self.code)
+        #get the number of chapters (solely for user feedback)
+        online_chapter_list=re.findall('<p id="L'+'(.*?)'+'">',html,re.DOTALL)
+        #get the chapters url
+        chapter_list=re.findall(r'<p id="L'+'.*?'+'">'+'(.*?)'+'</p>',html,re.S)
+
+        print(online_chapter_list)
+        lastDL=self.getLastChapter()
+        online_chapter_list=online_chapter_list[lastDL:]
+        chapter_list=chapter_list[lastDL:]
+
+        print("there are %d chapters to udpate"%len(online_chapter_list))
+        print(online_chapter_list)
+
+        #chapter_list=re.findall(r'<a href="(.*?)">(.*?)<',str(chapter_list))
+        #i=lastDL+1
+        for chapter_link in chapter_list:
+            url+='/'    #syosetu/code/
+            chapter_link=[url,chapter_link]
+            #self.processChapter(chapter_link,headers)
+
+    def processChapter(self,chapter_link,headers):
+        i=self.getLastChapter()+1
+
+        chapter_title=chapter_link[1]
+        chapter_url='%s%s/'%(chapter_link[0],i)
+        print(chapter_url)
+        chapter_rep=requests.get(chapter_url,headers=headers)
+        chapter_rep.encoding='utf-8'
+        chapter_html=chapter_rep.text
+        print(chapter_html)
+        print(re.findall(r'<div id="novel_honbun" class="novel_view">(.*?)</div>',chapter_html,re.S))
+
+
+        chapter_content=re.findall(r'<div id="novel_honbun" class="novel_view">(.*?)</div>',chapter_html,re.S)[0]
+        replacething=re.findall(r'<p id=' + '.*?' + '>', chapter_content)
+        for y in replacething:
+            chapter_content=chapter_content.replace(y,'')
+        chapter_content=chapter_content.replace('</p>','\r\n')
+        chapter_content = chapter_content.replace('<br />', '')
+        chapter_content = chapter_content.replace('<rb>', '')
+        chapter_content = chapter_content.replace('</rb>', '')
+        chapter_content = chapter_content.replace('<rp>', '')
+        chapter_content = chapter_content.replace('</rp>', '')
+        chapter_content = chapter_content.replace('<rt>', '')
+        chapter_content = chapter_content.replace('</rt>', '')
+        chapter_content = chapter_content.replace('<ruby>', '')
+        chapter_content = chapter_content.replace('</ruby>', '')
+
+        chapter_title=self.validateTitle(chapter_title)
+        replacething=re.findall('_u3000', chapter_title)
+        for y in replacething:
+            chapter_title=chapter_title.replace(y,' ')
+        print(chapter_title)
+        self.createFile(i,chapter_title,chapter_content)
+        self.setLastChapter(i)
+
+
+
+    def getNovelTitle(self):
+        #https://novel18.syosetu.com/n8451sz/
+         url=self.site+'/%s/'%self.code
+         headers = {"user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
+         print('accessing: '+url)
+         print()
+         print(url)
+         #https://novel18.syosetu.com/n8451sz
+         #cookies={'autologin':'1872412%3C%3E014ebbec6d4b5ba4b35b8b5853e19625f9e6bf77eb2609658c927a0a8b4989b6'}
+         #cookies.update({'ASP.NET_SessionId':'to3210exzz4jerncygdnevl0'})
+         #cookies.update({'ses':'qRtZF3-Wlg5ehnQXuig-X1'})
+         #print(cookies['autologin'])
+
+         payload = {
+            'narouid': '1872412',
+            'pass': 'eudes3654'
+         }
+        #payload.udpate({"user-agent":"Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"})
+         #https://ssl.syosetu.com/login/input/
+         # Use 'with' to ensure the session context is closed after use.
+         with requests.Session() as s:
+            #print(s.get('https://ssl.syosetu.com/login/input/',headers=headers))
+            p = s.post('https://ssl.syosetu.com/login/input/',headers=headers, data=payload)
+            # print the html returned or something more intelligent to see if it's a successful login page.
+            print(p)
+            #print(p.text)
+
+            tmp='https://syosetu.com/user/top/'
+            r=s.get(tmp,headers=headers)
+            r.encoding='utf-8'
+            print(r.text)
+
+            # An authorised request.
+            #r = s.get(url,headers=headers)
+            #print(r.text)
+            import sys
+            print('fin')
+            sys.exit()
+
+
+
+         rep=requests.get(url,cookies=cookies)#,headers=headers)
+         rep.encoding='utf-8'
+         html=rep.text
+         writer=re.findall(r'<p class="novel_title">(.*?)</p>',html)
+         print(writer)
+         return writer[0]
+
+
 
 def checkTitle(str):
     str=str.replace('?','')
@@ -231,3 +370,22 @@ def checkTitle(str):
     str=str.replace('<','')
     str=str.replace('>','')
     return str
+
+def test():
+    import os
+
+    x=Novel('n18n8321do','')
+
+    x=x.updateObject()
+    print(x)
+    name=x.getNovelTitle()
+    print(name)
+    dir=x.code+' '+name
+    print(dir)
+
+
+    print("dir=  "+dir)
+            #dir='./novel_list/'+code+' '+name
+    x.setDir(dir)
+    x.setLastChapter(0)
+    x.processNovel()

@@ -81,10 +81,12 @@ def download():
         if (name==''):
             dir='./novel_list/'
             name=novel.getNovelTitle()
+            name=Downloaders.checkTitle(name)
             print(name)
             dir+=code+' '+name
             print(dir)
         else:
+            name=Downloaders.checkTitle(name)
             dir='./novel_list/'+code+' '+name
         dirlist=os.listdir('./novel_list/')
         bool='false'
