@@ -39,10 +39,11 @@ class Novel:
     def createFile(self,chapterNumber,chapter_title,chapter_content):
         chapter_title=checkTitle(chapter_title)
         print('saving '+chapter_title)
-        file = open('%s\%d_%s.txt'%(self.getDir(),chapterNumber,chapter_title), 'w+', encoding='utf-8')
-        file.write(chapter_title)
+        file = open('%s/%d_%s.txt'%(self.getDir(),chapterNumber,chapter_title), 'w+', encoding='utf-8')
+        file.write(chapter_title+'\n')
         file.write(chapter_content)
         file.close()
+        print('\n\n')
 
     def setLastChapter(self,chap):
         self.chap=chap
@@ -70,16 +71,15 @@ class SyosetuNovel(Novel):
         rep=requests.get(url,headers=headers)
         rep.encoding='utf-8'
         html=rep.text
-
+        if(self.getLastChapter()==0):
+            self.processTocResume(html)
         #get the number of chapters (solely for user feedback)
         online_chapter_list=re.findall(r'<a href="/'+self.code+'/'+'(.*?)'+'/">.*?</a>',html,re.S)
         #get the chapters url
         chapter_list=re.findall(r'<a href="/'+self.code+'/'+'.*?'+'/">.*?</a>',html,re.S)
-
         lastDL=self.getLastChapter()
         online_chapter_list=online_chapter_list[lastDL:]
         chapter_list=chapter_list[lastDL:]
-
         print("there are %d chapters to udpate"%len(online_chapter_list))
         print(online_chapter_list)
 
@@ -88,9 +88,17 @@ class SyosetuNovel(Novel):
         for chapter_link in chapter_list:
             self.processChapter(chapter_link,headers)
 
+    def processTocResume(self,html):
+        resume=re.findall('<div id="novel_ex">'+'(.*?)'+'</div>',html,re.S)[0]
+        resume=self.cleanText(resume)
+        title=self.getNovelTitle()
+        print('title= '+title)
+        resume=title+'\n'+resume
+        print(resume)
+        self.createFile(0,'TOC',resume)
+
     def processChapter(self,chapter_link,headers):
         i=self.getLastChapter()+1
-
         chapter_title=chapter_link[1]
         chapter_url='https://ncode.syosetu.com%s'%chapter_link[0]
         print(chapter_url)
@@ -101,7 +109,17 @@ class SyosetuNovel(Novel):
         replacething=re.findall(r'<p id=' + '.*?' + '>', chapter_content)
         for y in replacething:
             chapter_content=chapter_content.replace(y,'')
-        chapter_content=chapter_content.replace('</p>','\r\n')
+        chapter_content=self.cleanText(chapter_content)
+        chapter_title=self.validateTitle(chapter_title)
+        replacething=re.findall('_u3000', chapter_title)
+        for y in replacething:
+            chapter_title=chapter_title.replace(y,' ')
+        print(chapter_title)
+        self.createFile(i,chapter_title,chapter_content)
+        self.setLastChapter(i)
+
+    def cleanText(self,chapter_content):
+        chapter_content = chapter_content.replace('</p>','\r\n')
         chapter_content = chapter_content.replace('<br />', '')
         chapter_content = chapter_content.replace('<rb>', '')
         chapter_content = chapter_content.replace('</rb>', '')
@@ -111,15 +129,7 @@ class SyosetuNovel(Novel):
         chapter_content = chapter_content.replace('</rt>', '')
         chapter_content = chapter_content.replace('<ruby>', '')
         chapter_content = chapter_content.replace('</ruby>', '')
-
-        chapter_title=self.validateTitle(chapter_title)
-        replacething=re.findall('_u3000', chapter_title)
-        for y in replacething:
-            chapter_title=chapter_title.replace(y,' ')
-        print(chapter_title)
-        self.createFile(i,chapter_title,chapter_content)
-        self.setLastChapter(i)
-
+        return chapter_content
 
     def validateTitle(self,title):
         rstr = r"[\/\\\:\*\?\"\<\>\|]"
@@ -136,6 +146,8 @@ class SyosetuNovel(Novel):
         html=rep.text
 
         writer=re.findall(r'<p class="novel_title">(.*?)</p>',html,re.S)
+        print('title = ')
+        print(writer)
         return writer[0]
 
 class KakuyomuNovel(Novel):
@@ -191,8 +203,6 @@ class KakuyomuNovel(Novel):
             sentence = sentence.replace('</rb>','//')
             sentence += '\n'
             contentUPDATED.append(sentence)
-
-
         self.createFile(chapter_title,contentUPDATED,chapter_url)
 
 
@@ -204,9 +214,6 @@ class KakuyomuNovel(Novel):
         for sentence in chapter_content:
             file.write(sentence)
         file.close()
-
-
-
 
     def getNovelTitle(self):
         titlediv='<h1 id="workTitle"><a href="/works/%s">'%self.code
@@ -220,7 +227,6 @@ class KakuyomuNovel(Novel):
         return html[titlediv1:endTitleDiv]
 
 
-
 class N18SyosetuNovel(Novel):
     def __init__(self,novel):
         super().__init__(novel.code[3:],novel.titre)
@@ -230,14 +236,10 @@ class N18SyosetuNovel(Novel):
         super.createFile(chapterNumber,chapter_title,chapter_content)
 
     def processNovel(self):
-
-
         print("sysosetu novel "+self.titre)
         print('last chapter: '+str(self.getLastChapter()))
 
-
         url=self.site+'/%s/'%self.code
-
         headers = {"user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
         print('accessing: '+url)
         print()
@@ -369,6 +371,7 @@ def checkTitle(str):
     str=str.replace('|','')
     str=str.replace('<','')
     str=str.replace('>','')
+    str=str[:250-len('./novel_list/')]
     return str
 
 def test():
@@ -389,3 +392,12 @@ def test():
     x.setDir(dir)
     x.setLastChapter(0)
     x.processNovel()
+
+def testToc():
+    x=Novel('n7244bl','')
+    x=x.updateObject()
+    x.setDir('../novel_list/n7244bl Modern Weapons Cheat in Another World')
+    x.processTOC()
+
+
+#testToc()

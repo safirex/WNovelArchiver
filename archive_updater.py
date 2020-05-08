@@ -7,7 +7,39 @@ sys.path.insert(1,cwd+'\\src')
 import Downloaders
 
 
-def updateArchive():
+def archiveUpdate():
+    for novel_folder in os.listdir('./novel_list'):
+        print()
+        code=novel_folder.find(' ')
+        novel_name=novel_folder[code:]
+        code=novel_folder[:code]
+        #here we got the novel code and our folder name
+
+        #let's change the fetching process behaviour following the site it's hosted on
+        novel=Downloaders.Novel(code,novel_name)
+        novel=novel.updateObject()
+        if(novel==0):
+            print(novel_folder+' couldnt be updated')
+            continue
+        #now we fetch the local chapters and get the last chapter stored
+
+        chapter_list=os.listdir('./novel_list/%s'%novel_folder)
+        last_downloaded=0
+        for chap in chapter_list:
+            n=chap.find('_')
+            tmp=chap[:n]
+            tmp=int(tmp)
+            if(last_downloaded<tmp):
+                last_downloaded=tmp
+        novel.setLastChapter(last_downloaded)
+        #now that we have the number of the last chapter and the novel code
+        #let's update the archive
+
+        novel.setDir('./novel_list/'+code+novel_name)
+        novel.processNovel()
+
+
+def archiveFullUpdate():
     for novel_folder in os.listdir('./novel_list'):
         print()
         code=novel_folder.find(' ')
@@ -40,9 +72,7 @@ def updateArchive():
 
 
 
-
 def getInputFile():
-
     inputfile=open('input.txt','r+', encoding='utf-8')
     line=inputfile.readline()
     cnt=0
@@ -77,6 +107,8 @@ def download():
 
         novel=Downloaders.Novel(code,name)
         novel=novel.updateObject()
+        if(novel==0):
+            break
         dir=''
         if (name==''):
             dir='./novel_list/'
@@ -94,13 +126,13 @@ def download():
             if (file[:7]==code):
                 bool='true'
         if bool=='true':
-            print('folder with same code already exists')
+            print('folder already exists')
             continue
 
         if code+' '+name not in dirlist:
             os.mkdir('%s'%dir)
         else:
-            print('folder already imported, update to keep up with site')
+            print(code+' '+name+' folder already imported, update to keep up with site')
             continue
 
         print("dir=  "+dir)
@@ -130,10 +162,9 @@ def getFolderStatus():
         statusList.append([code,lastchap,novel_name])
         print('%s %s %s'%(code,lastchap,novel_name))
     enterInCSV(dir+'/status.csv',statusList)
-    #print(statusList)
+
 
 def enterInCSV(filename,tab):
-
     file = open(filename, 'w+', encoding='utf-8')
     for line in tab:
         file.write('%1s %1s %2s\n'%(line[0],line[1],line[2]))
@@ -155,7 +186,7 @@ if(type=='' or type == 'archive_updater.py'):
     print('el ye')
     input=input("update archive (%s) or download (%s) ?  "%(updateInput,downloadInput))
     if (input==updateInput):
-        updateArchive()
+        archiveUpdate()
     elif (input==downloadInput):
         download()
     elif (input==statusInput):
@@ -166,7 +197,7 @@ if(type==downloadInput):
     download()
 
 if(type==updateInput):
-    updateArchive()
+    archiveUpdate()
 
 if(type==statusInput):
     getFolderStatus()
