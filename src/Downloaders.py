@@ -258,8 +258,9 @@ class N18SyosetuNovel(Novel):
         rep=requests.get(url,cookies=cookies)#,headers=headers)
         rep.encoding='utf-8'
         html=rep.text
-        print(html)
+        #print(html)
         print(self.code)
+        print(rep.json)
         #get the number of chapters (solely for user feedback)
         online_chapter_list=re.findall('<p id="L'+'(.*?)'+'">',html,re.DOTALL)
         #get the chapters url
@@ -331,32 +332,7 @@ class N18SyosetuNovel(Novel):
          #cookies.update({'ses':'qRtZF3-Wlg5ehnQXuig-X1'})
          #print(cookies['autologin'])
 
-         payload = {
-            'narouid': '1872412',
-            'pass': 'eudes3654'
-         }
-        #payload.udpate({"user-agent":"Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"})
-         #https://ssl.syosetu.com/login/input/
-         # Use 'with' to ensure the session context is closed after use.
-         with requests.Session() as s:
-            #print(s.get('https://ssl.syosetu.com/login/input/',headers=headers))
-            p = s.post('https://ssl.syosetu.com/login/input/',headers=headers, data=payload)
-            # print the html returned or something more intelligent to see if it's a successful login page.
-            print(p)
-            #print(p.text)
-
-            tmp='https://syosetu.com/user/top/'
-            r=s.get(tmp,headers=headers)
-            r.encoding='utf-8'
-            print(r.text)
-
-            # An authorised request.
-            #r = s.get(url,headers=headers)
-            #print(r.text)
-            import sys
-            print('fin')
-            sys.exit()
-
+        
 
 
          rep=requests.get(url,cookies=cookies)#,headers=headers)
@@ -366,6 +342,10 @@ class N18SyosetuNovel(Novel):
          print(writer)
          return writer[0]
 
+    def connectViaRequests():
+
+
+    def connectViaMechanize():
 
 
 def checkTitle(str):
@@ -381,6 +361,25 @@ def checkTitle(str):
     str=str.replace('>','')
     str=str[:250-len('./novel_list/')]
     return str
+
+
+
+
+def testToc():
+    x=Novel('n7244bl','')
+    x=x.updateObject()
+    x.setDir('../novel_list/n7244bl Modern Weapons Cheat in Another World')
+    x.processTOC()
+
+def testReMethodes():
+    x=Novel('n8577dn','')
+    x=x.updateObject()
+    print(x)
+    chap=x.processChapterNew(50)
+    chap.createFile('./')
+    #print(chap)
+
+
 
 def test():
     import os
@@ -401,21 +400,7 @@ def test():
     x.setLastChapter(0)
     x.processNovel()
 
-def testToc():
-    x=Novel('n7244bl','')
-    x=x.updateObject()
-    x.setDir('../novel_list/n7244bl Modern Weapons Cheat in Another World')
-    x.processTOC()
-
-def testReMethodes():
-    x=Novel('n8577dn','')
-    x=x.updateObject()
-    print(x)
-    chap=x.processChapterNew(50)
-    chap.createFile('./')
-    #print(chap)
 #testToc()
 import re
 import Chapters
-
-#testReMethodes()
+test()

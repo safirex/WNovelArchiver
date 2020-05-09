@@ -15,14 +15,14 @@ def archiveUpdate():
         code=novel_folder[:code]
         #here we got the novel code and our folder name
 
-        #let's change the fetching process behaviour following the site it's hosted on
+        #let's change the fetching process following the site it's hosted on
         novel=Downloaders.Novel(code,novel_name)
         novel=novel.updateObject()
         if(novel==0):
             print(novel_folder+' couldnt be updated')
             continue
-        #now we fetch the local chapters and get the last chapter stored
 
+        #now we fetch the local chapters and determine the last chapter stored
         chapter_list=os.listdir('./novel_list/%s'%novel_folder)
         last_downloaded=0
         for chap in chapter_list:
@@ -33,8 +33,8 @@ def archiveUpdate():
                 last_downloaded=tmp
         novel.setLastChapter(last_downloaded)
         #now that we have the number of the last chapter and the novel code
-        #let's update the archive
 
+        #let's update the archive
         novel.setDir('./novel_list/'+code+novel_name)
         novel.processNovel()
 
@@ -84,7 +84,6 @@ def archiveFullUpdate():
         novel.setLastChapter(int(last_downloaded))
         #now that we have the number of the last chapter and the novel code
         #let's update the archive
-
         novel.processNovel()
 
 
