@@ -7,7 +7,7 @@ sys.path.insert(1,cwd+'\\src')
 import Downloaders
 
 
-def updateArchive():
+def archiveUpdate():
     for novel_folder in os.listdir('./novel_list'):
         print()
         code=novel_folder.find(' ')
@@ -39,10 +39,57 @@ def updateArchive():
         novel.processNovel()
 
 
+def archiveFullUpdate():
+    for novel_folder in os.listdir('./novel_list'):
+        print()
+        code=novel_folder.find(' ')
+        novel_name=novel_folder[code:]
+        code=novel_folder[:code]
+        #here we got the novel code and our folder name
+
+        #let's change the fetching process behaviour following the site it's hosted on
+        novel=Downloaders.Novel(code,novel_name)
+        novel=novel.updateObject()
+        if(novel==0):
+            print(novel_folder+' couldnt be updated')
+            continue
+        #now we fetch the local chapters and get the last chapter stored
+
+        chapter_list=os.listdir('./novel_list/%s'%novel_folder)
+        novel.setDir('./novel_list/'+code+novel_name)
+
+        last_downloaded=0
+        taille=len(chapter_list)
+        code_list=[]
+        for nov in chapter_list:
+            chapter_code=nov.find('_')
+            chapter_code=nov[:chapter_code]
+            code_list.append(chapter_code)
+            if(int(last_downloaded)<int(chapter_code)):
+                last_downloaded=chapter_code
+        print(last_downloaded)
+        print(code_list)
+        for i in range(0,int(last_downloaded)):
+
+            if '%s'%i not in code_list:
+                print('no '+str(i))
+                if int(i) == 0 and isinstance(novel,Downloaders.SyosetuNovel) :
+                    novel.processTocResume()
+                    continue
+                elif isinstance(novel,Downloaders.SyosetuNovel) :
+                    novel.setLastChapter(int(i)) #work around cause conception is shit
+                    chap=int(i)
+                    novel.processChapter(chap)
+                    continue
+        novel.setLastChapter(int(last_downloaded))
+        #now that we have the number of the last chapter and the novel code
+        #let's update the archive
+
+        novel.processNovel()
+
 
 
 def getInputFile():
-
     inputfile=open('input.txt','r+', encoding='utf-8')
     line=inputfile.readline()
     cnt=0
@@ -77,14 +124,18 @@ def download():
 
         novel=Downloaders.Novel(code,name)
         novel=novel.updateObject()
+        if(novel==0):
+            break
         dir=''
         if (name==''):
             dir='./novel_list/'
             name=novel.getNovelTitle()
+            name=Downloaders.checkTitle(name)
             print(name)
             dir+=code+' '+name
             print(dir)
         else:
+            name=Downloaders.checkTitle(name)
             dir='./novel_list/'+code+' '+name
         dirlist=os.listdir('./novel_list/')
         bool='false'
@@ -92,13 +143,13 @@ def download():
             if (file[:7]==code):
                 bool='true'
         if bool=='true':
-            print('folder with same code already exists')
+            print('folder already exists')
             continue
 
         if code+' '+name not in dirlist:
             os.mkdir('%s'%dir)
         else:
-            print('folder already imported, update to keep up with site')
+            print(code+' '+name+' folder already imported, update to keep up with site')
             continue
 
         print("dir=  "+dir)
@@ -128,10 +179,9 @@ def getFolderStatus():
         statusList.append([code,lastchap,novel_name])
         print('%s %s %s'%(code,lastchap,novel_name))
     enterInCSV(dir+'/status.csv',statusList)
-    #print(statusList)
+
 
 def enterInCSV(filename,tab):
-
     file = open(filename, 'w+', encoding='utf-8')
     for line in tab:
         file.write('%1s %1s %2s\n'%(line[0],line[1],line[2]))
@@ -145,6 +195,7 @@ for arg in sys.argv:
     print(arg)
 
 updateInput='u'
+fullupdateInput='fu'
 downloadInput='d'
 statusInput='s'
 
@@ -153,10 +204,12 @@ if(type=='' or type == 'archive_updater.py'):
     print('el ye')
     input=input("update archive (%s) or download (%s) ?  "%(updateInput,downloadInput))
     if (input==updateInput):
-        updateArchive()
+        archiveUpdate()
     elif (input==downloadInput):
         download()
     elif (input==statusInput):
+        getFolderStatus()
+    elif (input==fullupdateInput):
         getFolderStatus()
 
 
@@ -164,7 +217,10 @@ if(type==downloadInput):
     download()
 
 if(type==updateInput):
-    updateArchive()
+    archiveUpdate()
 
 if(type==statusInput):
     getFolderStatus()
+
+if(type==fullupdateInput):
+    archiveFullUpdate()
