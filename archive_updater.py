@@ -56,18 +56,34 @@ def archiveFullUpdate():
         #now we fetch the local chapters and get the last chapter stored
 
         chapter_list=os.listdir('./novel_list/%s'%novel_folder)
+        novel.setDir('./novel_list/'+code+novel_name)
+
         last_downloaded=0
-        for chap in chapter_list:
-            n=chap.find('_')
-            tmp=chap[:n]
-            tmp=int(tmp)
-            if(last_downloaded<tmp):
-                last_downloaded=tmp
-        novel.setLastChapter(last_downloaded)
+        taille=len(chapter_list)
+        code_list=[]
+        for nov in chapter_list:
+            chapter_code=nov.find('_')
+            chapter_code=nov[:chapter_code]
+            code_list.append(chapter_code)
+            if(int(last_downloaded)<int(chapter_code)):
+                last_downloaded=chapter_code
+        print(last_downloaded)
+        for i in range(0,int(last_downloaded)):
+            if i not in chapter_list:
+                if int(i) == 0 and isinstance(novel,Downloaders.SyosetuNovel) :
+                    print('no '+str(i))
+                    novel.processTocResume()
+                    continue
+                elif isinstance(novel,Downloaders.SyosetuNovel) :
+                    print('no '+str(i))
+                    novel.setLastChapter(int(i)) #work around cause conception is shit
+                    chap='%s/%s/'%(novel.code,i)
+                    novel.processChapter(chap)
+                    continue
+        novel.setLastChapter(int(last_downloaded))
         #now that we have the number of the last chapter and the novel code
         #let's update the archive
 
-        novel.setDir('./novel_list/'+code+novel_name)
         novel.processNovel()
 
 
@@ -178,6 +194,7 @@ for arg in sys.argv:
     print(arg)
 
 updateInput='u'
+fullupdateInput='fu'
 downloadInput='d'
 statusInput='s'
 
@@ -191,6 +208,8 @@ if(type=='' or type == 'archive_updater.py'):
         download()
     elif (input==statusInput):
         getFolderStatus()
+    elif (input==fullupdateInput):
+        getFolderStatus()
 
 
 if(type==downloadInput):
@@ -201,3 +220,6 @@ if(type==updateInput):
 
 if(type==statusInput):
     getFolderStatus()
+
+if(type==fullupdateInput):
+    archiveFullUpdate()

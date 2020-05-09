@@ -24,5 +24,5 @@ The script can be launched by either arguments or inputs :
 * <b>d</b> to download all novels in the <i>input.txt</i>
 * <b>s</b> to detect all novel folders in ./novel_list/ and generate a csv file listing code/last chapter/name
 
-The file should be in csv style (code;novelname):<br>
+The input.txt file should be written in csv style (code;novelname):<br>
 ![r](https://image.prntscr.com/image/9VS7bCmcSSmdOlt02XcXmg.png)<br>The novel name can be let empty, in this case the script will fetch the novel name from the site<br><br>

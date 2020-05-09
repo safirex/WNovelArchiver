@@ -58,6 +58,8 @@ class Novel:
 
 class SyosetuNovel(Novel):
     def __init__(self,Novel):
+        self.site='https://ncode.syosetu.com/'
+        self.headers={"user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
         super().__init__(Novel.code,Novel.titre)
 
     def processNovel(self):
@@ -65,8 +67,7 @@ class SyosetuNovel(Novel):
         print('last chapter: '+str(self.getLastChapter()))
 
         url='https://ncode.syosetu.com/%s/'%self.code
-        headers = {"user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
-        print('accessing: '+url)
+        headers = print('accessing: '+url)
         print()
         rep=requests.get(url,headers=headers)
         rep.encoding='utf-8'
@@ -86,23 +87,34 @@ class SyosetuNovel(Novel):
         chapter_list=re.findall(r'<a href="(.*?)">(.*?)<',str(chapter_list))
         #i=lastDL+1
         for chapter_link in chapter_list:
-            self.processChapter(chapter_link,headers)
+            self.processChapter(chapter_link)
 
     def processTocResume(self,html):
         resume=re.findall('<div id="novel_ex">'+'(.*?)'+'</div>',html,re.S)[0]
         resume=self.cleanText(resume)
-        title=self.getNovelTitle()
-        print('title= '+title)
-        resume=title+'\n'+resume
-        print(resume)
+        title='novel title= '+self.getNovelTitle()
+        resume=title+'\n\n'+resume
         self.createFile(0,'TOC',resume)
 
-    def processChapter(self,chapter_link,headers):
+    def processTocResume(self):
+        url='https://ncode.syosetu.com/%s/'%self.code
+        headers = {"user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
+        rep=requests.get(url,headers=headers)
+        rep.encoding='utf-8'
+        html=rep.text
+        resume=re.findall('<div id="novel_ex">'+'(.*?)'+'</div>',html,re.S)[0]
+        resume=self.cleanText(resume)
+        title='novel title= '+self.getNovelTitle()
+        resume=title+'\n\n'+resume
+        self.createFile(0,'TOC',resume)
+
+
+    def processChapter(self,chapter_link):
         i=self.getLastChapter()+1
         chapter_title=chapter_link[1]
         chapter_url='https://ncode.syosetu.com%s'%chapter_link[0]
         print(chapter_url)
-        chapter_rep=requests.get(chapter_url,headers=headers)
+        chapter_rep=requests.get(chapter_url,headers=self.headers)
         chapter_rep.encoding='utf-8'
         chapter_html=chapter_rep.text
         chapter_content=re.findall(r'<div id="novel_honbun" class="novel_view">(.*?)</div>',chapter_html,re.S)[0]
@@ -117,6 +129,21 @@ class SyosetuNovel(Novel):
         print(chapter_title)
         self.createFile(i,chapter_title,chapter_content)
         self.setLastChapter(i)
+
+    def processChapterNew(self,chapter_num):
+        chapter=Chapters.SyosetuChapter(self.code,chapter_num)
+        chapter_rep=requests.get(chapter.getUrl(),headers=self.headers)
+        chapter_rep.encoding='utf-8'
+        chapter_html=chapter_rep.text
+        title=chapter.getTitle(chapter_html)
+        content=chapter.getContent(chapter_html)
+        print('title = '+title)
+        print(content)
+        return chapter
+        #self.createFile(i,chapter_title,chapter_content)
+        #self.setLastChapter(i)
+
+
 
     def cleanText(self,chapter_content):
         chapter_content = chapter_content.replace('</p>','\r\n')
@@ -399,5 +426,16 @@ def testToc():
     x.setDir('../novel_list/n7244bl Modern Weapons Cheat in Another World')
     x.processTOC()
 
+def testReMethodes():
+    x=Novel('n8577dn','')
 
+    x=x.updateObject()
+    print(x)
+    chap=x.processChapterNew(50)
+    chap.createFile('./')
+    #print(chap)
 #testToc()
+import re
+import Chapters
+
+testReMethodes()
