@@ -68,16 +68,17 @@ def archiveFullUpdate():
             if(int(last_downloaded)<int(chapter_code)):
                 last_downloaded=chapter_code
         print(last_downloaded)
+        print(code_list)
         for i in range(0,int(last_downloaded)):
-            if i not in chapter_list:
+
+            if '%s'%i not in code_list:
+                print('no '+str(i))
                 if int(i) == 0 and isinstance(novel,Downloaders.SyosetuNovel) :
-                    print('no '+str(i))
                     novel.processTocResume()
                     continue
                 elif isinstance(novel,Downloaders.SyosetuNovel) :
-                    print('no '+str(i))
                     novel.setLastChapter(int(i)) #work around cause conception is shit
-                    chap='%s/%s/'%(novel.code,i)
+                    chap=int(i)
                     novel.processChapter(chap)
                     continue
         novel.setLastChapter(int(last_downloaded))

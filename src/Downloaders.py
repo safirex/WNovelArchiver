@@ -67,29 +67,34 @@ class SyosetuNovel(Novel):
         print('last chapter: '+str(self.getLastChapter()))
 
         url='https://ncode.syosetu.com/%s/'%self.code
-        headers = print('accessing: '+url)
+        headers = self.headers
+        print('accessing: '+url)
         print()
         rep=requests.get(url,headers=headers)
         rep.encoding='utf-8'
         html=rep.text
         if(self.getLastChapter()==0):
-            self.processTocResume(html)
+            self.processTocResumelight(html)
+
         #get the number of chapters (solely for user feedback)
         online_chapter_list=re.findall(r'<a href="/'+self.code+'/'+'(.*?)'+'/">.*?</a>',html,re.S)
-        #get the chapters url
-        chapter_list=re.findall(r'<a href="/'+self.code+'/'+'.*?'+'/">.*?</a>',html,re.S)
+
+    #get the chapters url
+        #chapter_list=re.findall(r'<a href="/'+self.code+'/'+'.*?'+'/">.*?</a>',html,re.S)
         lastDL=self.getLastChapter()
         online_chapter_list=online_chapter_list[lastDL:]
-        chapter_list=chapter_list[lastDL:]
+        #chapter_list=chapter_list[lastDL:]
         print("there are %d chapters to udpate"%len(online_chapter_list))
         print(online_chapter_list)
 
-        chapter_list=re.findall(r'<a href="(.*?)">(.*?)<',str(chapter_list))
+        #chapter_list=re.findall(r'<a href="(.*?)">(.*?)<',str(chapter_list))
         #i=lastDL+1
-        for chapter_link in chapter_list:
-            self.processChapter(chapter_link)
+        for chapter_num in online_chapter_list:
+            chap=self.processChapter(int(chapter_num))
+            chap.createFile(self.dir+'/')
 
-    def processTocResume(self,html):
+    def processTocResumelight(self,html):
+        print(html)
         resume=re.findall('<div id="novel_ex">'+'(.*?)'+'</div>',html,re.S)[0]
         resume=self.cleanText(resume)
         title='novel title= '+self.getNovelTitle()
@@ -108,37 +113,13 @@ class SyosetuNovel(Novel):
         resume=title+'\n\n'+resume
         self.createFile(0,'TOC',resume)
 
-
-    def processChapter(self,chapter_link):
-        i=self.getLastChapter()+1
-        chapter_title=chapter_link[1]
-        chapter_url='https://ncode.syosetu.com%s'%chapter_link[0]
-        print(chapter_url)
-        chapter_rep=requests.get(chapter_url,headers=self.headers)
-        chapter_rep.encoding='utf-8'
-        chapter_html=chapter_rep.text
-        chapter_content=re.findall(r'<div id="novel_honbun" class="novel_view">(.*?)</div>',chapter_html,re.S)[0]
-        replacething=re.findall(r'<p id=' + '.*?' + '>', chapter_content)
-        for y in replacething:
-            chapter_content=chapter_content.replace(y,'')
-        chapter_content=self.cleanText(chapter_content)
-        chapter_title=self.validateTitle(chapter_title)
-        replacething=re.findall('_u3000', chapter_title)
-        for y in replacething:
-            chapter_title=chapter_title.replace(y,' ')
-        print(chapter_title)
-        self.createFile(i,chapter_title,chapter_content)
-        self.setLastChapter(i)
-
-    def processChapterNew(self,chapter_num):
+    def processChapter(self,chapter_num):
         chapter=Chapters.SyosetuChapter(self.code,chapter_num)
         chapter_rep=requests.get(chapter.getUrl(),headers=self.headers)
         chapter_rep.encoding='utf-8'
         chapter_html=chapter_rep.text
         title=chapter.getTitle(chapter_html)
         content=chapter.getContent(chapter_html)
-        print('title = '+title)
-        print(content)
         return chapter
         #self.createFile(i,chapter_title,chapter_content)
         #self.setLastChapter(i)
@@ -428,7 +409,6 @@ def testToc():
 
 def testReMethodes():
     x=Novel('n8577dn','')
-
     x=x.updateObject()
     print(x)
     chap=x.processChapterNew(50)
@@ -438,4 +418,4 @@ def testReMethodes():
 import re
 import Chapters
 
-testReMethodes()
+#testReMethodes()
