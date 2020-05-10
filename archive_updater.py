@@ -188,6 +188,40 @@ def enterInCSV(filename,tab):
 
 
 
+def compressNovelDirectory(novelDirectory,outputDir):
+    import zipfile
+    novelname=novelDirectory[novelDirectory.rfind('/')+1:]
+    outputZipName=outputDir+'/'+novelname+'.zip'
+    zipf = zipfile.ZipFile(outputZipName, 'w', zipfile.ZIP_DEFLATED)
+    for root, dirs, files in os.walk(novelDirectory):
+        for file in files:
+            zipf.write(os.path.join(root, file))
+    print()
+    zipf.close()
+
+def compressAll(regex='',outputDir=''):
+    if (outputDir==''):
+        dirlist=os.listdir('./')
+        print(dirlist)
+        outputDir='./zip'
+        if 'zip' not in dirlist :
+            os.mkdir('zip')
+    dir='./novel_list'
+    DirToCompress=[]
+    for novel_folder in os.listdir(dir):
+        if novel_folder.find(regex)!=-1:
+            DirToCompress.append(novel_folder)
+
+    for subdir in DirToCompress:
+        print('done at '+str(DirToCompress.index(subdir))+' on '+str(len(DirToCompress)))
+        if(subdir.find('.')==-1):
+            compressNovelDirectory(dir+'/'+subdir,outputDir)
+    return(DirToCompress)
+
+
+
+
+
 type=''
 for arg in sys.argv:
     type=arg

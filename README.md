@@ -1,13 +1,15 @@
 # WNovelArchiver
-A simple python script to easily download and keep up to date raw web-novels on syosetu and kakuyomu
-
+A simple python script to easily download and keep up to date raw web-novels on syosetu and kakuyomu  
+If you have another WN site (JP/CN/KR/...) which you would like to be usable, feel free to put an issue.  
 If your connection isn't stable, the script may (will) crash while downloading.
 ### Features:
 * batch download (1 to max) from the input.txt
 * update chapters of all the novels in the /novel_list/ directory
+* generate a status file recording for every novel the last chapter ddl-ed
+* compressing each novel in a zip of its own (not accessible by commands atm)
 
 ### Sites featured:
-* Syosetu ncode and novel18 (only)
+* Syosetu ncode and novel18
 * Kakuyomu
 
 
