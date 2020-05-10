@@ -43,6 +43,7 @@ class Chapter():
     def cleanText(self,chapter_content):
         chapter_content = chapter_content.replace('</p>','\r\n')
         chapter_content = chapter_content.replace('<br />', '')
+        chapter_content = chapter_content.replace('<br/>', '')
         chapter_content = chapter_content.replace('<rb>', '')
         chapter_content = chapter_content.replace('</rb>', '')
         chapter_content = chapter_content.replace('<rp>', '')
@@ -56,7 +57,7 @@ class Chapter():
 
     def createFile(self,dir):
         chapter_title=checkTitle(self.title)
-        print('saving '+chapter_title)
+        print('saving '+str(self.num)+' '+chapter_title)
         file = open('%s/%d_%s.txt'%(dir,self.num,chapter_title), 'w+', encoding='utf-8')
         file.write(chapter_title+'\n')
         file.write(self.content)
@@ -68,7 +69,7 @@ class Chapter():
 class SyosetuChapter(Chapter):
     def __init__(self,novelNum,num):
         self.novelNum=novelNum
-        super().__init__(num)
+        super(SyosetuChapter,self).__init__(num)
         self.setUrl()
 
     def setUrl(self):
@@ -91,3 +92,30 @@ class SyosetuChapter(Chapter):
         chapter_content=self.cleanText(chapter_content)
         self.setContent(chapter_content)
         return chapter_content
+
+class N18SyosetuChapter(SyosetuChapter,Chapter):
+    def __init__(self,novelNum,num):
+        super(N18SyosetuChapter,self).__init__(novelNum,num)
+        self.setUrl()
+
+    def setUrl(self):
+        self.url='https://novel18.syosetu.com/%s/%s/'%(self.novelNum,self.num)
+
+    def getContent(self,html):
+        chapter_content=re.findall(r'<div class="novel_view" id="novel_honbun">(.*?)</div>',html,re.S)[0]
+        replacething=re.findall(r'<p id=' + '.*?' + '>', chapter_content)
+        for y in replacething:
+            chapter_content=chapter_content.replace(y,'')
+        chapter_content=self.cleanText(chapter_content)
+        self.setContent(chapter_content)
+        return chapter_content
+
+    def createFile(self,dir):
+        chapter_title=checkTitle(self.title)
+
+        print('saving '+str(self.num)+' '+chapter_title)
+        file = open('%s/%d_%s.txt'%(dir,self.num,chapter_title), 'w+', encoding='utf-8')
+        file.write(chapter_title+'\n')
+        file.write(self.content)
+        file.close()
+        print('\n\n')
