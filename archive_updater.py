@@ -19,7 +19,7 @@ def archiveUpdate():
         novel=Downloaders.Novel(code,novel_name)
         novel=novel.updateObject()
         if(novel==0):
-            print(novel_folder+' couldnt be updated')
+            print(novel_folder+' couldnt be updated because errored')
             continue
 
         #now we fetch the local chapters and determine the last chapter stored
@@ -139,10 +139,11 @@ def download():
         dirlist=os.listdir('./novel_list/')
         bool='false'
         for file in dirlist:
+
             if (file[:7]==code):
-                bool='true'
-        if bool=='true':
-            print('folder already exists')
+                bool=file
+        if bool!='false':
+            print(bool[:25]+'... \tfolder already exists')
             continue
 
         if code+' '+name not in dirlist:

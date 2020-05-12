@@ -27,7 +27,7 @@ class Novel:
             return SyosetuNovel(self)
         elif(len(self.code)==len('1177354054888541019')):
             return KakuyomuNovel(self)
-        elif(len(self.code)==10 and self.code.find('n18')==0):
+        elif(len(self.code)>7 and self.code.find('n18')==0):
             return N18SyosetuNovel(self)
         else:
             return 0
