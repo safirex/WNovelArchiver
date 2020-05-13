@@ -124,7 +124,7 @@ def download():
         novel=Downloaders.Novel(code,name)
         novel=novel.updateObject()
         if(novel==0):
-            break
+            continue
         dir=''
         if (name==''):
             dir='./novel_list/'

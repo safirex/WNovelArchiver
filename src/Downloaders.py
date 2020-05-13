@@ -23,12 +23,12 @@ class Novel:
 
     #will instanciate an object depending of the code
     def updateObject(self):
-        if (len(self.code)==7 and self.code.find('n')==0):
+        if(len(self.code)>7 and self.code.find('n18n')==0):
+            return N18SyosetuNovel(self)
+        elif (len(self.code)>=6 and len(self.code)<=7 and self.code.find('n')==0):
             return SyosetuNovel(self)
         elif(len(self.code)==len('1177354054888541019')):
             return KakuyomuNovel(self)
-        elif(len(self.code)>7 and self.code.find('n18')==0):
-            return N18SyosetuNovel(self)
         else:
             return 0
 
@@ -98,7 +98,7 @@ class SyosetuNovel(Novel):
             rep=requests.get(url,headers=headers)
             rep.encoding='utf-8'
             html=rep.text
-        print(html)
+        #print(html)
         resume=re.findall('<div id="novel_ex">'+'(.*?)'+'</div>',html,re.S)[0]
         resume=self.cleanText(resume)
         title='novel title= '+self.getNovelTitle()
