@@ -221,40 +221,89 @@ def compressAll(regex='',outputDir=''):
 
 
 
-
-
-type=''
-for arg in sys.argv:
-    type=arg
-    print(arg)
-
 updateInput='u'
 fullupdateInput='fu'
 downloadInput='d'
 statusInput='s'
+compressInput='c'
 
 
-if(type=='' or type == 'archive_updater.py'):
-    print('el ye')
-    input=input("update archive (%s) or download (%s) ?  "%(updateInput,downloadInput))
-    if (input==updateInput):
-        archiveUpdate()
-    elif (input==downloadInput):
+def entree():
+    type=''
+    for arg in sys.argv:
+        type=arg
+        print(arg)
+
+    if(type=='' or type == 'archive_updater.py'):
+        print('el ye')
+        input=input("update archive (%s) or download (%s) ?  "%(updateInput,downloadInput))
+        if (input==updateInput):
+            archiveUpdate()
+        elif (input==downloadInput):
+            download()
+        elif (input==statusInput):
+            getFolderStatus()
+        elif (input==fullupdateInput):
+            getFolderStatus()
+    if(type==downloadInput):
         download()
-    elif (input==statusInput):
+    if(type==updateInput):
+        archiveUpdate()
+    if(type==statusInput):
         getFolderStatus()
-    elif (input==fullupdateInput):
-        getFolderStatus()
+    if(type==fullupdateInput):
+        archiveFullUpdate()
 
 
-if(type==downloadInput):
-    download()
+def parser():
+    import argparse
+    parser = argparse.ArgumentParser(description=''' c to compress novels in zip\n
+        d to download input.txt list
+        s to update status.csv
+        u to update novels''')
+    parser.add_argument("mode",
+        help="put the letter of argument c/d/s/u",
+        type=str,default=argparse.SUPPRESS)
 
-if(type==updateInput):
-    archiveUpdate()
+    parser.add_argument("-r", help="regex of entree for compression selection (select * containing regex)",
+        type=str,default=argparse.SUPPRESS)
+    parser.add_argument("-o", help="output directory (only works for compression)",
+        type=str,default=argparse.SUPPRESS)
 
-if(type==statusInput):
-    getFolderStatus()
+    args = parser.parse_args()
+    print(args)
+    if args.mode:
+        if(args.mode==downloadInput):
+            print("downloading")
+            download()
+        if(args.mode==updateInput):
+            archiveUpdate()
+        if(args.mode==statusInput):
+            getFolderStatus()
+        if(args.mode==fullupdateInput):
+            archiveFullUpdate()
+        if(args.mode==compressInput):
+            print('compression')
+            print(args)
+            regex=''
+            out=''
+            if hasattr(args, 'r'):
+                regex=args.r
+            if hasattr(args, 'o'):
+                out=args.o
+            compressAll(regex,out)
 
-if(type==fullupdateInput):
-    archiveFullUpdate()
+    else:
+        input=input("update archive (%s) or download (%s) ?  "%(updateInput,downloadInput))
+        if (input==updateInput):
+            archiveUpdate()
+        elif (input==downloadInput):
+            download()
+        elif (input==statusInput):
+            getFolderStatus()
+        elif (input==fullupdateInput):
+            getFolderStatus()
+
+
+
+parser()
