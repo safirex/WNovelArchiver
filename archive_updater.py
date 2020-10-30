@@ -1,11 +1,13 @@
 # coding: utf-8
 import os
 import sys
+
 cwd=os.getcwd()
 sys.path.insert(1,cwd+'\\src')
+import tkinter
 
 import Downloaders
-
+import SysTray
 
 def archiveUpdate():
     for novel_folder in os.listdir('./novel_list'):
@@ -220,90 +222,53 @@ def compressAll(regex='',outputDir=''):
     return(DirToCompress)
 
 
-
-updateInput='u'
-fullupdateInput='fu'
-downloadInput='d'
-statusInput='s'
-compressInput='c'
+def background():
+    import subprocess
+    subprocess.Popen("archive_updater.py launchTrayMode")
 
 
-def entree():
-    type=''
-    for arg in sys.argv:
-        type=arg
-        print(arg)
 
-    if(type=='' or type == 'archive_updater.py'):
-        print('el ye')
-        input=input("update archive (%s) or download (%s) ?  "%(updateInput,downloadInput))
-        if (input==updateInput):
-            archiveUpdate()
-        elif (input==downloadInput):
-            download()
-        elif (input==statusInput):
-            getFolderStatus()
-        elif (input==fullupdateInput):
-            getFolderStatus()
-    if(type==downloadInput):
+def backgroundExe():
+    import pystray
+
+
+    from SysTray import setup
+    SysTray.setup()
+
+    def localDownload(systray='0'):
         download()
-    if(type==updateInput):
+    def localUpdate(systray='0'):
         archiveUpdate()
-    if(type==statusInput):
-        getFolderStatus()
-    if(type==fullupdateInput):
-        archiveFullUpdate()
+
+    #image=create_image()
+    #menu = (item('download', download), item('update', archiveUpdate))
+    #icon = pystray.Icon("name", image, "title", menu)
+    #icon.run()
+    #icon.icon = create_image()
+
+### background call
+def backgroundExeinfi():
+    from infi.systray import SysTrayIcon
+    import asyncio
+    import threading
+    async def say_hello(systray):
+        print("Hello, World!")
+    def localDownload(systray='0'):
+        download()
+    def localUpdate(systray='0'):
+        archiveUpdate()
+
+        #x = threading.Thread(target=thread_function, args=(1,))
+        #x.start()
+        #x.join()
 
 
-def parser():
-    import argparse
-    parser = argparse.ArgumentParser(description=''' c to compress novels in zip\n
-        d to download input.txt list
-        s to update status.csv
-        u to update novels''')
-    parser.add_argument("mode",
-        help="put the letter of argument c/d/s/u",
-        type=str,default=argparse.SUPPRESS)
-
-    parser.add_argument("-r", help="regex of entree for compression selection (select * containing regex)",
-        type=str,default=argparse.SUPPRESS)
-    parser.add_argument("-o", help="output directory (only works for compression)",
-        type=str,default=argparse.SUPPRESS)
-
-    args = parser.parse_args()
-    print(args)
-    if args.mode:
-        if(args.mode==downloadInput):
-            print("downloading")
-            download()
-        if(args.mode==updateInput):
-            archiveUpdate()
-        if(args.mode==statusInput):
-            getFolderStatus()
-        if(args.mode==fullupdateInput):
-            archiveFullUpdate()
-        if(args.mode==compressInput):
-            print('compression')
-            print(args)
-            regex=''
-            out=''
-            if hasattr(args, 'r'):
-                regex=args.r
-            if hasattr(args, 'o'):
-                out=args.o
-            compressAll(regex,out)
-
-    else:
-        input=input("update archive (%s) or download (%s) ?  "%(updateInput,downloadInput))
-        if (input==updateInput):
-            archiveUpdate()
-        elif (input==downloadInput):
-            download()
-        elif (input==statusInput):
-            getFolderStatus()
-        elif (input==fullupdateInput):
-            getFolderStatus()
-
-
-
-parser()
+    print("test")
+    print ('Hello, World!')
+    menu_options = (
+        ("Say Hello", None, say_hello),
+        ('Download',None,localDownload),
+        ('Update',None,localUpdate)
+        )
+    systray = SysTrayIcon("icon.ico", "Example tray icon", menu_options)
+    systray.start()
