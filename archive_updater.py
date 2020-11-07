@@ -7,11 +7,15 @@ sys.path.insert(1,cwd+'\\src')
 import Downloaders
 
 
-def archiveUpdate():
-    for novel_folder in os.listdir('./novel_list'):
+def archiveUpdate(dirList=[]):
+    if not dirList:
+        dirList=os.listdir('./novel_list')
+
+
+    for novel_folder in dirList:
         print()
         code=novel_folder.find(' ')
-        novel_name=novel_folder[code:]
+        novel_name=novel_folder[code+1:]
         code=novel_folder[:code]
         #here we got the novel code and our folder name
 
@@ -59,7 +63,6 @@ def archiveFullUpdate():
         novel.setDir('./novel_list/'+code+novel_name)
 
         last_downloaded=0
-        taille=len(chapter_list)
         code_list=[]
         for nov in chapter_list:
             chapter_code=nov.find('_')
@@ -91,20 +94,21 @@ def archiveFullUpdate():
 def getInputFile():
     inputfile=open('input.txt','r+', encoding='utf-8')
     line=inputfile.readline()
-    cnt=0
     novel_list=[]
     while line:
         print("{}".format(line.strip()))
         separator=line.find(';')
         code=line[:separator]
-        novel_name=line[separator+1:len(line)-1] #delete carriage return
+        upperLim=len(line)
+        #if(line[len(line)]=='/n')
+        #    upperLim=len(line)-1
+        print(line[len(line)-1])
+        novel_name=line[separator+1:upperLim] #delete carriage return
         novel_list.append([code,novel_name])
         line = inputfile.readline()
     inputfile.close()
     #print('list= ')
 
-    # novel_list[]= [code,name]
-    #print(novel_list)
     return novel_list
 
 
@@ -125,6 +129,7 @@ def download():
         novel=novel.updateObject()
         if(novel==0):
             continue
+
         dir=''
         if (name==''):
             dir='./novel_list/'
@@ -139,7 +144,6 @@ def download():
         dirlist=os.listdir('./novel_list/')
         bool='false'
         for file in dirlist:
-
             if (file[:7]==code):
                 bool=file
         if bool!='false':
@@ -149,7 +153,7 @@ def download():
         if code+' '+name not in dirlist:
             os.mkdir('%s'%dir)
         else:
-            print(code+' '+name+' folder already imported, update to keep up with site')
+            print(code+' '+name+' folder already imported, update to fetch updates')
             continue
 
         print("dir=  "+dir)
@@ -194,9 +198,9 @@ def compressNovelDirectory(novelDirectory,outputDir):
     novelname=novelDirectory[novelDirectory.rfind('/')+1:]
     outputZipName=outputDir+'/'+novelname+'.zip'
     zipf = zipfile.ZipFile(outputZipName, 'w', zipfile.ZIP_DEFLATED)
-    for root, dirs, files in os.walk(novelDirectory):
-        for file in files:
-            zipf.write(os.path.join(root, file))
+    for tab in os.walk(novelDirectory):
+        for file in tab[2]:
+            zipf.write(os.path.join(tab[0], file))
     print()
     zipf.close()
 
@@ -269,6 +273,7 @@ def parser():
         type=str,default=argparse.SUPPRESS)
     parser.add_argument("-o", help="output directory (only works for compression)",
         type=str,default=argparse.SUPPRESS)
+    
 
     args = parser.parse_args()
     print(args)
@@ -276,13 +281,13 @@ def parser():
         if(args.mode==downloadInput):
             print("downloading")
             download()
-        if(args.mode==updateInput):
+        elif(args.mode==updateInput):
             archiveUpdate()
-        if(args.mode==statusInput):
+        elif(args.mode==statusInput):
             getFolderStatus()
-        if(args.mode==fullupdateInput):
+        elif(args.mode==fullupdateInput):
             archiveFullUpdate()
-        if(args.mode==compressInput):
+        elif(args.mode==compressInput):
             print('compression')
             print(args)
             regex=''
@@ -292,17 +297,13 @@ def parser():
             if hasattr(args, 'o'):
                 out=args.o
             compressAll(regex,out)
-
-    else:
-        input=input("update archive (%s) or download (%s) ?  "%(updateInput,downloadInput))
-        if (input==updateInput):
-            archiveUpdate()
-        elif (input==downloadInput):
-            download()
-        elif (input==statusInput):
-            getFolderStatus()
-        elif (input==fullupdateInput):
-            getFolderStatus()
+        elif(args.mode=='t'):
+            mylist=os.listdir('./novel_list')
+            obje=[1]
+            for obj in mylist:
+                if(obj.find('wuxiaworld Trash of the Counts Family')!=-1):
+                    obje[0]=obj
+            archiveUpdate(obje)
 
 
 
