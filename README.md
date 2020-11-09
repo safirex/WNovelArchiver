@@ -13,19 +13,21 @@ If your connection isn't stable, the script may (will) crash while downloading.
 * Kakuyomu
 
 
-## Build
+## How to use
+
 Clone or download the repo  <br>
 <code>cd WNovelArchiver</code><br>
 <code>python archive_updater.py</code><br>
-You may use arguments (<b>u</b> / <b>d</b> / <b>s</b>)
-
+(you might be aksed to download some packages)<br>
 
 ## Instructions
-The script can be launched by either arguments or inputs :
-* <b>u</b> to update the current novels
-* <b>d</b> to download all novels in the <i>input.txt</i>
-* <b>s</b> to detect all novel folders in ./novel_list/ and generate a csv file listing code/last chapter/name
+The input.txt is used to give the script the entries to download.  
+It should be written in csv style (code;novelname):  
+The novel name can be let empty, in this case the script will fetch the novel name from the site  
+![r](https://image.prntscr.com/image/8AY0wQWOQfqTNRfqg9Lejg.png)
+With n5947eg being the code of the novel accessed by https://ncode.syosetu.com/n5947eg/
 
-The input.txt file should be written in csv style (code;novelname):<br>
-![r](https://image.prntscr.com/image/8AY0wQWOQfqTNRfqg9Lejg.png)<br>The novel name can be let empty, in this case the script will fetch the novel name from the site<br>    
-**the novel18.syosetu code should be written as n18'code' (n18n5560ce)**
+codes:
+* syosetsu    : code of the novel
+* syosetsu 18+: <code>n18</code>code of the novel
+* kakyomu     : code of the novel
