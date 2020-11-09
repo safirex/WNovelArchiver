@@ -434,6 +434,7 @@ class WuxiaWorldNovel(Novel):
         code=Novel.titre.replace(' ','-')
         code=code.lower()
         Novel.code=code
+        #novel.code = the-trash-of-count
         super(WuxiaWorldNovel,self).__init__(Novel.code,Novel.titre)
 
     
@@ -501,5 +502,4 @@ class WuxiaWorldNovel(Novel):
             resp=br.response()
             content = resp.get_data()
             soup = BeautifulSoup(content, 'html.parser')
-            #print(soup.prettify())
             return str(soup)

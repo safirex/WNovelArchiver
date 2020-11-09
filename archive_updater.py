@@ -14,9 +14,9 @@ def archiveUpdate(dirList=[]):
 
     for novel_folder in dirList:
         print()
-        code=novel_folder.find(' ')
-        novel_name=novel_folder[code+1:]
-        code=novel_folder[:code]
+        code=       novel_folder.find(' ')
+        novel_name= novel_folder[code+1:]
+        code=       novel_folder[:code]
         #here we got the novel code and our folder name
 
         #let's change the fetching process following the site it's hosted on
@@ -39,7 +39,7 @@ def archiveUpdate(dirList=[]):
         #now that we have the number of the last chapter and the novel code
 
         #let's update the archive
-        novel.setDir('./novel_list/'+code+novel_name)
+        novel.setDir('./novel_list/'+novel_folder)
         novel.processNovel()
 
 

@@ -137,7 +137,7 @@ class WuxiaWorldChapter(Chapter):
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(html)
         title=''
-        for h in soup.find_all('h4'):
+        for h in soup.find_all('title'):
             title=h.string
 
         #title=re.findall('<h4 class="" (*<>) (.*?)</h4>',html)[0]
@@ -150,19 +150,16 @@ class WuxiaWorldChapter(Chapter):
 
     def getContent(self,html):
         from bs4 import BeautifulSoup
-        print(html)
+
+        #can be made better with soup.id["chapter-content"]
         soup = BeautifulSoup(html)
         chapter_content=''
         for div in soup.find_all('div'):
-            if(div.get("id")!=None):
-                if(div.get("id")[0]=="chapter-content"):
-                    chapter_content=div.string
-        
-        #chapter_content=re.findall(r'<div id="chapter-content" >(.*?)</div>',html,re.S)[0]
-        replacething=re.findall(r'<' + '.*?' + '>', chapter_content)
-        
-        for y in replacething:
-            chapter_content=chapter_content.replace(y,'')
-        chapter_content=self.cleanText(chapter_content)
+            id=div.get("id")
+            if(id!=None):
+                print(id)
+                if(id=="chapter-content"):
+                    chapter_content=div.text
+                    break
         self.setContent(chapter_content)
         return chapter_content
