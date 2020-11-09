@@ -1,3 +1,4 @@
+note: ripping is bad, don't do it
 # WNovelArchiver
 A simple python script to easily download and keep up to date raw web-novels on syosetu and kakuyomu  
 If you have another WN site (JP/CN/KR/...) which you would like to be usable, feel free to put an issue.  
