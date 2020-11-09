@@ -448,7 +448,6 @@ class WuxiaWorldNovel(Novel):
         #rep=requests.get(url,headers=self.headers)
         #rep.encoding='utf-8'
         html=self.connectViaMechanize(url)
-        print(html)
         chapList=re.findall(chapterListDiv,html,re.DOTALL)[2:]
         chapList=chapList[self.getLastChapter():]
         print()

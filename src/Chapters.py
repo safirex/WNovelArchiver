@@ -157,7 +157,6 @@ class WuxiaWorldChapter(Chapter):
         for div in soup.find_all('div'):
             id=div.get("id")
             if(id!=None):
-                print(id)
                 if(id=="chapter-content"):
                     chapter_content=div.text
                     break
