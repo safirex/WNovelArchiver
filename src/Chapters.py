@@ -19,10 +19,11 @@ def checkTitle(str):
     return str
 
 class Chapter():
-    def __init__(self,num):
+    def __init__(self,num,url=''):
         self.num=num
         self.content=[]
         self.title=''
+        self.url=url
 
     def setContent(self,content):
         self.content=content
@@ -30,7 +31,7 @@ class Chapter():
     def setTitle(self,Title):
         self.title=Title
 
-    def setUrl() -> str:
+    def setUrl(self) -> str:
         """"will define Url chapter"""
         pass
     def getUrl(self):

@@ -100,8 +100,8 @@ def getInputFile():
         separator=line.find(';')
         code=line[:separator]
         upperLim=len(line)
-        #if(line[len(line)]=='/n')
-        #    upperLim=len(line)-1
+        if('\n' in line[separator+1:upperLim]):
+            upperLim=len(line)-1
         print(line[len(line)-1])
         novel_name=line[separator+1:upperLim] #delete carriage return
         novel_list.append([code,novel_name])
@@ -172,8 +172,6 @@ def getFolderStatus():
             continue
         novel_name=novel_folder[code:]
         code=novel_folder[:code]
-
-        novel=Downloaders.Novel(code,novel_name)
         lastchap=0
         for file in os.listdir(dir+'/'+novel_folder):
             chapnum=file.find('_')

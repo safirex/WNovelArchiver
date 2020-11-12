@@ -383,25 +383,6 @@ def checkTitle(str):
     str=str[:250-len('./novel_list/')]
     return str
 
-
-
-
-def testToc():
-    x=Novel('n7244bl','')
-    x=x.updateObject()
-    x.setDir('../novel_list/n7244bl Modern Weapons Cheat in Another World')
-    x.processTOC()
-
-def testReMethodes():
-    x=Novel('n8577dn','')
-    x=x.updateObject()
-    print(x)
-    chap=x.processChapterNew(50)
-    chap.createFile('./')
-    #print(chap)
-
-
-
 def test():
     import os
 
