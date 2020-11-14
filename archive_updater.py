@@ -221,6 +221,12 @@ def compressAll(regex='',outputDir=''):
             compressNovelDirectory(dir+'/'+subdir,outputDir)
     return(DirToCompress)
 
+def findNovel(regex,dir='./novel_list'):
+    liste=[]
+    for novel_folder in os.listdir(dir):
+        if novel_folder.find(regex)!=-1:
+            liste.append(novel_folder)
+    return liste
 
 
 updateInput='u'
@@ -280,7 +286,12 @@ def parser():
             print("downloading")
             download()
         elif(args.mode==updateInput):
-            archiveUpdate()
+            
+            if hasattr(args, 'r'):
+                regex=args.r
+                archiveUpdate(findNovel(regex))
+            else:
+                archiveUpdate()
         elif(args.mode==statusInput):
             getFolderStatus()
         elif(args.mode==fullupdateInput):

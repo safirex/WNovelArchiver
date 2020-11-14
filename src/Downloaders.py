@@ -236,9 +236,6 @@ class N18SyosetuNovel(SyosetuNovel,Novel):
         self.site='https://novel18.syosetu.com'
         #self.cookie={'autologin':getCookies()}
 
-    def createFile(self,chapterNumber,chapter_title,chapter_content):
-        print(self.dir)
-        super.createFile(chapterNumber,chapter_title,chapter_content)
 
     def processNovel(self):
         import sys
