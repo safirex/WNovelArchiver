@@ -19,6 +19,17 @@ def checkTitle(str):
     return str
 
 class Chapter():
+    def new(self,num,url):
+        self.reset()
+        self.__init__(num,url)
+        return self
+
+    def reset(self):
+        dic = vars(self)
+        for i in dic.keys():
+            print(dic[i])
+            dic[i] = 0
+
     def __init__(self,num,url=''):
         self.num=num
         self.content=[]
@@ -125,6 +136,8 @@ class N18SyosetuChapter(SyosetuChapter,Chapter):
         file.close()
         print('\n\n')
 
+
+"""
 class WuxiaWorldChapter(Chapter):
     
     def __init__(self,chapterUrl,num):
@@ -163,3 +176,61 @@ class WuxiaWorldChapter(Chapter):
                     break
         self.setContent(chapter_content)
         return chapter_content
+"""
+
+
+class WuxiaWorldChapter(Chapter):
+        
+    def __init__(self,chapterUrl,num):
+        super(WuxiaWorldChapter,self).__init__(num)
+        self.setUrl(chapterUrl)
+        self.titleDiv='title'
+        self.contentDiv='"chapter-content"'
+
+    def setUrl(self,url):
+        self.url=url
+
+    def getTitle(self,html):
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(html)
+        title=self.extractDiv(html,self.titleDiv)
+        title=self.validateTitle(title)
+        self.setTitle(title)
+        return title
+
+    def getContent(self,html):
+        from bs4 import BeautifulSoup
+
+        #can be made better with soup.id["chapter-content"]
+        soup = BeautifulSoup(html)
+        chapter_content=''
+        for div in soup.find_all('div'):
+            id=div.get("id")
+            if(id!=None):
+                if(id=="chapter-content"):
+                    chapter_content=div.text
+                    break
+        self.setContent(chapter_content)
+        return chapter_content
+
+    def getContent2(self,html):
+        chapter_content= extractId(html,self.contentDiv)
+        self.setContent(chapter_content)
+        return chapter_content
+        
+    def extractId(html,idDiv):
+        soup = BeautifulSoup(html,features="html5lib")
+        chapter_content=""
+        for line in soup.find_all(id=idDiv):
+            chapter_content+=line.text
+        return chapter_content
+
+    def extractClass(html,classDiv):
+
+    def extractDiv(html,div):
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(html,features="html5lib")
+        content=''
+        for h in soup.find_all(div):
+            content+=h.string
+        return content

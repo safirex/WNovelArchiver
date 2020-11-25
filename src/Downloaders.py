@@ -9,8 +9,9 @@ class Novel:
         self.titre=titreNovel
 
     def download(self) -> str:
-        """download chapter from site."""
+        #download chapter from site.
         pass
+    
 
     def processNovel(self) -> str:
         """"will process the html and download the chapter"""
@@ -234,7 +235,6 @@ class N18SyosetuNovel(SyosetuNovel,Novel):
         novel.setCode(novel.code[3:])
         super(N18SyosetuNovel,self).__init__(novel)
         self.site='https://novel18.syosetu.com'
-        #self.cookie={'autologin':getCookies()}
 
 
     def processNovel(self):
@@ -334,38 +334,6 @@ class N18SyosetuNovel(SyosetuNovel,Novel):
         #print(soup.prettify())
         return str(soup)
 
-
-def getCookies():
-    file = open('./file.config','r+',encoding='utf-8')
-    line=searchNextLine(file,'N18')
-    line=searchNextLine(file,'autologin')
-    autologinkey=getCookieKey(line)
-    print('key=' +autologinkey)
-    file.close()
-    return autologinkey
-
-def getCookieKey(line):
-    #will get the key of the line
-    print(line)
-    key=line[line.find(':')+1:]
-    key=key[key.find('"')+1:]
-    key=key[:key.find('"')]
-    return key
-
-def searchNextLine(file,str):
-    line=file.readline()
-    while line:
-        print("{}".format(line.strip()))
-        if (line.find(str)!=-1):
-            return line
-        line=file.readline()
-    return -1
-
-
-
-
-
-
 def checkTitle(str):
     str=str.replace('?','')
     str=str.replace('!','')
@@ -380,30 +348,7 @@ def checkTitle(str):
     str=str[:250-len('./novel_list/')]
     return str
 
-def test():
-    import os
-
-    x=Novel('n18n8321do','')
-
-    x=x.updateObject()
-    x.setLastChapter(0)
-    print(x)
-    name=x.getNovelTitle()
-    print(name)
-    dir=x.code+' '+name
-    print(dir)
-
-
-    print("dir=  "+dir)
-            #dir='./novel_list/'+code+' '+name
-    x.setDir(dir)
-    x.setLastChapter(0)
-    x.processNovel()
-
-#testToc()
-#test()
-
-
+"""
 class WuxiaWorldNovel(Novel):
     def __init__(self,Novel):
         self.site='https://www.wuxiaworld.com/novel/'
@@ -443,6 +388,99 @@ class WuxiaWorldNovel(Novel):
         chapter=Chapters.WuxiaWorldChapter(chapter_url,chapter_num)
         #chapter_rep=requests.get(chapter.getUrl(),headers=self.headers)
         #chapter_rep.encoding='utf-8'
+        chapter_html=self.connectViaMechanize(chapter_url)
+        chapter.getTitle(chapter_html)
+        print(chapter.title)
+        chapter.getContent(chapter_html)
+        return chapter
+
+    def connectViaMechanize(self,url):
+            import http.cookiejar as cookielib
+            from bs4 import BeautifulSoup
+            import mechanize
+
+            print('beginning server cracking beep boop')
+            br=mechanize.Browser()
+            br.addheaders = [('User-agent', 'Chrome')]
+
+            cj = cookielib.LWPCookieJar()
+            # add a cookie to cookie jar
+            # Cookie(version, name, value, port, port_specified, domain,
+            # domain_specified, domain_initial_dot, path, path_specified,
+            # secure, discard, comment, comment_url, rest)
+
+            cj.set_cookie(cookielib.Cookie(0, 'over18', 'yes', '80', False, '.syosetu.com',
+                True, False, '/', True, False, None, False, None, None, None))
+
+            #autologinkey=str(self.cookie.get('autologin'))
+            #cj.set_cookie(cookielib.Cookie(0, 'autologin', autologinkey, '80', False, '.syosetu.com',
+            #    True, False, '/', True, False, None, False, None, None, None))
+
+            #print(cj)
+            br.set_handle_redirect(True)
+            br.set_cookiejar(cj)
+            print('accessing : '+url)
+            br.open(url)
+            resp=br.response()
+            content = resp.get_data()
+            soup = BeautifulSoup(content, 'html.parser')
+            return str(soup)
+"""
+
+
+
+
+
+
+class WuxiaWorldNovel(Novel):
+    def __init__(self,Novel):
+        # "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"
+        self.headers={"user-agent":"test"}
+        code=Novel.titre.replace(' ','-')
+        code=code.lower()
+        Novel.code=code
+        #novel.code = the-trash-of-count
+        super(WuxiaWorldNovel,self).__init__(Novel.code,Novel.titre)
+        self.site='https://www.wuxiaworld.com/novel/'
+        self.TOCUrl=self.site+self.code
+        self.chapterReader=chapter=Chapters.WuxiaWorldChapter("roar.com",1)
+    
+    def processNovel(self):
+        print("WuxiaWorld novel "+self.titre)
+        print('last chapter: '+str(self.getLastChapter()))
+        TOCUrl=self.TOCUrl
+        TOCChapterListDiv='/novel/%s/(.*?)"'%self.code
+
+        
+        print('accessing '+TOCUrl)
+        
+
+
+        #rep=requests.get(url,headers=self.headers)
+        #rep.encoding='utf-8'
+        html=self.connectViaMechanize(TOCUrl)
+        chapList=self.getChapterList(TOCChapterListDiv,html)
+        chapList=chapList[self.getLastChapter():]
+        print()
+        print("there are %d chapters to udpate"%len(chapList))
+        print(chapList)
+        print()
+        for chap in chapList: #last chapter = 0 at beginning
+            self.setLastChapter(self.getLastChapter()+1)
+            chapter_url=self.getChapterUrl(TOCUrl,chap)
+            print('chapter: '+str(self.getLastChapter())+'  '+chapter_url)
+            chapter=self.processChapter(chapter_url,self.getLastChapter())
+            chapter.createFile(self.dir+'/')
+
+
+    def getChapterUrl(self,url,chapNum):
+        return url+'/'+chapNum
+    def getChapterList(self,TOCChapterListDiv,chatper_html):
+        return re.findall(TOCChapterListDiv,chatper_html,re.DOTALL)[2:]
+
+    def processChapter(self,chapter_url,chapter_num):
+        self.chapterReader.new(chapter_url,chapter_num)
+        chapter=self.chapterReader
         chapter_html=self.connectViaMechanize(chapter_url)
         chapter.getTitle(chapter_html)
         print(chapter.title)
