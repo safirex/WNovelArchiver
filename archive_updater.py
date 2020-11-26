@@ -14,13 +14,9 @@ def archiveUpdate(dirList=[]):
 
     for novel_folder in dirList:
         print()
-        code=       novel_folder.find(' ')
-        novel_name= novel_folder[code+1:]
-        code=       novel_folder[:code]
-        #here we got the novel code and our folder name
-
-        #let's change the fetching process following the site it's hosted on
-        novel=Downloaders.Novel(code,novel_name)
+        novelInfo=getNovelInfoFromFolderName(novel_folder)
+        #change the fetching process following the site it's hosted on
+        novel=Downloaders.Novel(novelInfo[1],novelInfo[0])
         novel=novel.updateObject()
         if(novel==0):
             print(novel_folder+' couldnt be updated because errored')
@@ -46,9 +42,9 @@ def archiveUpdate(dirList=[]):
 def archiveFullUpdate():
     for novel_folder in os.listdir('./novel_list'):
         print()
-        code=novel_folder.find(' ')
-        novel_name=novel_folder[code:]
-        code=novel_folder[:code]
+        NFs=getNovelInfoFromFolderName(novel_folder)
+        novel_name=NFs[0]   #novel_folder[code:]
+        code=NFs[1]         #novel_folder[:code]
         #here we got the novel code and our folder name
 
         #let's change the fetching process behaviour following the site it's hosted on
@@ -99,11 +95,8 @@ def getInputFile():
         print("{}".format(line.strip()))
         separator=line.find(';')
         code=line[:separator]
-        upperLim=len(line)
-        if('\n' in line[separator+1:upperLim]):
-            upperLim=len(line)-1
-        print(line[len(line)-1])
-        novel_name=line[separator+1:upperLim] #delete carriage return
+        novel_name=line[separator+1:] #delete carriage return
+        novel_name=novel_name.strip()
         novel_list.append([code,novel_name])
         line = inputfile.readline()
     inputfile.close()
@@ -111,6 +104,12 @@ def getInputFile():
 
     return novel_list
 
+
+def getNovelInfoFromFolderName(folderName):
+    code=       folderName.find(' ')
+    novel_name= folderName[code+1:].strip()
+    code=       folderName[:code]
+    return [novel_name,code]
 
 
 
@@ -236,32 +235,6 @@ statusInput='s'
 compressInput='c'
 
 
-def entree():
-    type=''
-    for arg in sys.argv:
-        type=arg
-        print(arg)
-
-    if(type=='' or type == 'archive_updater.py'):
-        print('el ye')
-        input=input("update archive (%s) or download (%s) ?  "%(updateInput,downloadInput))
-        if (input==updateInput):
-            archiveUpdate()
-        elif (input==downloadInput):
-            download()
-        elif (input==statusInput):
-            getFolderStatus()
-        elif (input==fullupdateInput):
-            getFolderStatus()
-    if(type==downloadInput):
-        download()
-    if(type==updateInput):
-        archiveUpdate()
-    if(type==statusInput):
-        getFolderStatus()
-    if(type==fullupdateInput):
-        archiveFullUpdate()
-
 
 def parser():
     import argparse
@@ -286,7 +259,6 @@ def parser():
             print("downloading")
             download()
         elif(args.mode==updateInput):
-            
             if hasattr(args, 'r'):
                 regex=args.r
                 archiveUpdate(findNovel(regex))
@@ -306,14 +278,6 @@ def parser():
             if hasattr(args, 'o'):
                 out=args.o
             compressAll(regex,out)
-        elif(args.mode=='t'):
-            mylist=os.listdir('./novel_list')
-            obje=[1]
-            for obj in mylist:
-                if(obj.find('wuxiaworld Trash of the Counts Family')!=-1):
-                    obje[0]=obj
-            archiveUpdate(obje)
-
 
 
 parser()
