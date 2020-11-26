@@ -7,16 +7,16 @@ sys.path.insert(1,cwd+'\\src')
 import Downloaders
 
 
-def archiveUpdate():
-    for novel_folder in os.listdir('./novel_list'):
-        print()
-        code=novel_folder.find(' ')
-        novel_name=novel_folder[code:]
-        code=novel_folder[:code]
-        #here we got the novel code and our folder name
+def archiveUpdate(dirList=[]):
+    if not dirList:
+        dirList=os.listdir('./novel_list')
 
-        #let's change the fetching process following the site it's hosted on
-        novel=Downloaders.Novel(code,novel_name)
+
+    for novel_folder in dirList:
+        print()
+        novelInfo=getNovelInfoFromFolderName(novel_folder)
+        #change the fetching process following the site it's hosted on
+        novel=Downloaders.Novel(novelInfo[1],novelInfo[0])
         novel=novel.updateObject()
         if(novel==0):
             print(novel_folder+' couldnt be updated because errored')
@@ -35,16 +35,16 @@ def archiveUpdate():
         #now that we have the number of the last chapter and the novel code
 
         #let's update the archive
-        novel.setDir('./novel_list/'+code+novel_name)
+        novel.setDir('./novel_list/'+novel_folder)
         novel.processNovel()
 
 
 def archiveFullUpdate():
     for novel_folder in os.listdir('./novel_list'):
         print()
-        code=novel_folder.find(' ')
-        novel_name=novel_folder[code:]
-        code=novel_folder[:code]
+        NFs=getNovelInfoFromFolderName(novel_folder)
+        novel_name=NFs[0]   #novel_folder[code:]
+        code=NFs[1]         #novel_folder[:code]
         #here we got the novel code and our folder name
 
         #let's change the fetching process behaviour following the site it's hosted on
@@ -59,7 +59,6 @@ def archiveFullUpdate():
         novel.setDir('./novel_list/'+code+novel_name)
 
         last_downloaded=0
-        taille=len(chapter_list)
         code_list=[]
         for nov in chapter_list:
             chapter_code=nov.find('_')
@@ -91,22 +90,26 @@ def archiveFullUpdate():
 def getInputFile():
     inputfile=open('input.txt','r+', encoding='utf-8')
     line=inputfile.readline()
-    cnt=0
     novel_list=[]
     while line:
         print("{}".format(line.strip()))
         separator=line.find(';')
         code=line[:separator]
-        novel_name=line[separator+1:len(line)-1] #delete carriage return
+        novel_name=line[separator+1:] #delete carriage return
+        novel_name=novel_name.strip()
         novel_list.append([code,novel_name])
         line = inputfile.readline()
     inputfile.close()
     #print('list= ')
 
-    # novel_list[]= [code,name]
-    #print(novel_list)
     return novel_list
 
+
+def getNovelInfoFromFolderName(folderName):
+    code=       folderName.find(' ')
+    novel_name= folderName[code+1:].strip()
+    code=       folderName[:code]
+    return [novel_name,code]
 
 
 
@@ -125,6 +128,7 @@ def download():
         novel=novel.updateObject()
         if(novel==0):
             continue
+
         dir=''
         if (name==''):
             dir='./novel_list/'
@@ -139,7 +143,6 @@ def download():
         dirlist=os.listdir('./novel_list/')
         bool='false'
         for file in dirlist:
-
             if (file[:7]==code):
                 bool=file
         if bool!='false':
@@ -149,7 +152,7 @@ def download():
         if code+' '+name not in dirlist:
             os.mkdir('%s'%dir)
         else:
-            print(code+' '+name+' folder already imported, update to keep up with site')
+            print(code+' '+name+' folder already imported, update to fetch updates')
             continue
 
         print("dir=  "+dir)
@@ -168,8 +171,6 @@ def getFolderStatus():
             continue
         novel_name=novel_folder[code:]
         code=novel_folder[:code]
-
-        novel=Downloaders.Novel(code,novel_name)
         lastchap=0
         for file in os.listdir(dir+'/'+novel_folder):
             chapnum=file.find('_')
@@ -194,9 +195,9 @@ def compressNovelDirectory(novelDirectory,outputDir):
     novelname=novelDirectory[novelDirectory.rfind('/')+1:]
     outputZipName=outputDir+'/'+novelname+'.zip'
     zipf = zipfile.ZipFile(outputZipName, 'w', zipfile.ZIP_DEFLATED)
-    for root, dirs, files in os.walk(novelDirectory):
-        for file in files:
-            zipf.write(os.path.join(root, file))
+    for tab in os.walk(novelDirectory):
+        for file in tab[2]:
+            zipf.write(os.path.join(tab[0], file))
     print()
     zipf.close()
 
@@ -219,6 +220,12 @@ def compressAll(regex='',outputDir=''):
             compressNovelDirectory(dir+'/'+subdir,outputDir)
     return(DirToCompress)
 
+def findNovel(regex,dir='./novel_list'):
+    liste=[]
+    for novel_folder in os.listdir(dir):
+        if novel_folder.find(regex)!=-1:
+            liste.append(novel_folder)
+    return liste
 
 
 updateInput='u'
@@ -227,32 +234,6 @@ downloadInput='d'
 statusInput='s'
 compressInput='c'
 
-
-def entree():
-    type=''
-    for arg in sys.argv:
-        type=arg
-        print(arg)
-
-    if(type=='' or type == 'archive_updater.py'):
-        print('el ye')
-        input=input("update archive (%s) or download (%s) ?  "%(updateInput,downloadInput))
-        if (input==updateInput):
-            archiveUpdate()
-        elif (input==downloadInput):
-            download()
-        elif (input==statusInput):
-            getFolderStatus()
-        elif (input==fullupdateInput):
-            getFolderStatus()
-    if(type==downloadInput):
-        download()
-    if(type==updateInput):
-        archiveUpdate()
-    if(type==statusInput):
-        getFolderStatus()
-    if(type==fullupdateInput):
-        archiveFullUpdate()
 
 
 def parser():
@@ -269,6 +250,7 @@ def parser():
         type=str,default=argparse.SUPPRESS)
     parser.add_argument("-o", help="output directory (only works for compression)",
         type=str,default=argparse.SUPPRESS)
+    
 
     args = parser.parse_args()
     print(args)
@@ -276,13 +258,17 @@ def parser():
         if(args.mode==downloadInput):
             print("downloading")
             download()
-        if(args.mode==updateInput):
-            archiveUpdate()
-        if(args.mode==statusInput):
+        elif(args.mode==updateInput):
+            if hasattr(args, 'r'):
+                regex=args.r
+                archiveUpdate(findNovel(regex))
+            else:
+                archiveUpdate()
+        elif(args.mode==statusInput):
             getFolderStatus()
-        if(args.mode==fullupdateInput):
+        elif(args.mode==fullupdateInput):
             archiveFullUpdate()
-        if(args.mode==compressInput):
+        elif(args.mode==compressInput):
             print('compression')
             print(args)
             regex=''
@@ -292,18 +278,6 @@ def parser():
             if hasattr(args, 'o'):
                 out=args.o
             compressAll(regex,out)
-
-    else:
-        input=input("update archive (%s) or download (%s) ?  "%(updateInput,downloadInput))
-        if (input==updateInput):
-            archiveUpdate()
-        elif (input==downloadInput):
-            download()
-        elif (input==statusInput):
-            getFolderStatus()
-        elif (input==fullupdateInput):
-            getFolderStatus()
-
 
 
 parser()

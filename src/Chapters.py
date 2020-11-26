@@ -19,10 +19,11 @@ def checkTitle(str):
     return str
 
 class Chapter():
-    def __init__(self,num):
+    def __init__(self,num,url=''):
         self.num=num
         self.content=[]
         self.title=''
+        self.url=url
 
     def setContent(self,content):
         self.content=content
@@ -30,11 +31,12 @@ class Chapter():
     def setTitle(self,Title):
         self.title=Title
 
-    def setUrl() -> str:
+    def setUrl(self) -> str:
         """"will define Url chapter"""
         pass
     def getUrl(self):
         return self.url
+
     def validateTitle(self,title):
         rstr = r"[\/\\\:\*\?\"\<\>\|]"
         new_title = re.sub(rstr, "_", title)
@@ -56,7 +58,10 @@ class Chapter():
 
 
     def createFile(self,dir):
+        print("titre"+self.title)
+        print(self.num)
         chapter_title=checkTitle(self.title)
+        print("titre"+chapter_title)
         print('saving '+str(self.num)+' '+chapter_title)
         file = open('%s/%d_%s.txt'%(dir,self.num,chapter_title), 'w+', encoding='utf-8')
         file.write(chapter_title+'\n')
@@ -119,3 +124,42 @@ class N18SyosetuChapter(SyosetuChapter,Chapter):
         file.write(self.content)
         file.close()
         print('\n\n')
+
+class WuxiaWorldChapter(Chapter):
+    
+    def __init__(self,chapterUrl,num):
+        super(WuxiaWorldChapter,self).__init__(num)
+        self.setUrl(chapterUrl)
+
+    def setUrl(self,url):
+        self.url=url
+
+    def getTitle(self,html):
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(html)
+        title=''
+        for h in soup.find_all('title'):
+            title=h.string
+
+        #title=re.findall('<h4 class="" (*<>) (.*?)</h4>',html)[0]
+        replacething=re.findall('_u3000',title)
+        for y in replacething:
+            chapter_title=chapter_title.replace(y,' ')
+        title=self.validateTitle(title)
+        self.setTitle(title)
+        return title
+
+    def getContent(self,html):
+        from bs4 import BeautifulSoup
+
+        #can be made better with soup.id["chapter-content"]
+        soup = BeautifulSoup(html)
+        chapter_content=''
+        for div in soup.find_all('div'):
+            id=div.get("id")
+            if(id!=None):
+                if(id=="chapter-content"):
+                    chapter_content=div.text
+                    break
+        self.setContent(chapter_content)
+        return chapter_content
