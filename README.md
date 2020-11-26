@@ -12,6 +12,7 @@ If your connection isn't stable, the script may (will) crash while downloading.
 ### Sites featured:
 * Syosetu ncode and novel18
 * Kakuyomu
+* Wuxiaworld.com
 
 
 ## How to use
@@ -25,10 +26,11 @@ Clone or download the repo  <br>
 The input.txt is used to give the script the entries to download.  
 It should be written in csv style (code;novelname):  
 The novel name can be let empty, in this case the script will fetch the novel name from the site  
-![r](https://image.prntscr.com/image/8AY0wQWOQfqTNRfqg9Lejg.png)
+![r](https://image.prntscr.com/image/8AY0wQWOQfqTNRfqg9Lejg.png)  
 With n5947eg being the code of the novel accessed by https://ncode.syosetu.com/n5947eg/
 
 codes:
 * syosetsu    : code of the novel
 * syosetsu 18+: <code>n18</code>code of the novel
 * kakyomu     : code of the novel
+* wuxiaworld  : Name-Of-The-Novel
