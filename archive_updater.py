@@ -278,6 +278,5 @@ def parser():
             if hasattr(args, 'o'):
                 out=args.o
             compressAll(regex,out)
-
-
+            
 parser()
