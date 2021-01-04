@@ -81,7 +81,7 @@ class SyosetuNovel(Novel):
             offChapNum =int( offlineChap[:offlineChap.find('_')])
 
             #time to check if a chap has been modified since download
-            if offChapNum !=0:
+            if (offChapNum !=0) & (len(online_chap_list)-1>=offChapNum):
                 onlineDate=online_chap_list[offChapNum-1][1]
                 onlineDate=date.fromisoformat(onlineDate)
                 if(onlineDate > modifTime):
@@ -105,7 +105,7 @@ class SyosetuNovel(Novel):
 
         #get the number of chapters (solely for user feedback)
         online_chapter_list=re.findall(r'<a href="/'+self.code+'/'+'(.*?)'+'/">.*?</a>',html,re.S)
-        if(len(online_chapter_list)>1):
+        if(len(online_chapter_list)>=1):
             
 
             #get the chapters url
@@ -120,6 +120,8 @@ class SyosetuNovel(Novel):
 
             #will add new files for every revised chapters
             self.updatePerDate(html)
+        else:
+            print("this web novel has most likely been terminated")
 
     
 

@@ -1,4 +1,5 @@
 # coding: utf-8
+from argparse import RawDescriptionHelpFormatter
 import os
 import sys
 cwd=os.getcwd()
@@ -238,10 +239,11 @@ compressInput='c'
 
 def parser():
     import argparse
-    parser = argparse.ArgumentParser(description=''' c to compress novels in zip\n
+    parser = argparse.ArgumentParser(description="""        c to compress novels in zip
         d to download input.txt list
         s to update status.csv
-        u to update novels''')
+        u to update novels""",
+        formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument("mode",
         help="put the letter of argument c/d/s/u",
         type=str,default=argparse.SUPPRESS)
@@ -278,5 +280,5 @@ def parser():
             if hasattr(args, 'o'):
                 out=args.o
             compressAll(regex,out)
-            
+
 parser()
