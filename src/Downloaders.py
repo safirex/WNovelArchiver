@@ -73,7 +73,7 @@ class SyosetuNovel(Novel):
             tmpChapUpdateDate=h.find('dt').text[1:11].replace('/','-')
             tmp=[tmpChapTitle,tmpChapUpdateDate]
             online_chap_list.append(tmp)
-        
+
         dirList=os.listdir(self.getDir())
         for offlineChap in dirList:
             fileDir=self.getDir()+'/'+offlineChap
@@ -87,6 +87,9 @@ class SyosetuNovel(Novel):
                 if(onlineDate > modifTime):
                     #modif after last revision of chapter
                     print('need update man')
+                    chap=self.processChapter(int(offChapNum))
+                    chap.createFile(self.dir+'/')
+                    print('updated chap '+str(offChapNum))
         print("fin update")
 
     def processNovel(self):
@@ -106,7 +109,7 @@ class SyosetuNovel(Novel):
         #get the number of chapters (solely for user feedback)
         online_chapter_list=re.findall(r'<a href="/'+self.code+'/'+'(.*?)'+'/">.*?</a>',html,re.S)
         if(len(online_chapter_list)>=1):
-            
+
 
             #get the chapters url
             lastDL=self.getLastChapter()
@@ -123,7 +126,7 @@ class SyosetuNovel(Novel):
         else:
             print("this web novel has most likely been terminated")
 
-    
+
 
     def processTocResume(self,html=''):
         if(html==''):
@@ -443,7 +446,7 @@ class WuxiaWorldNovel(Novel):
         #novel.code = the-trash-of-count
         super(WuxiaWorldNovel,self).__init__(Novel.code,Novel.titre)
 
-    
+
     def processNovel(self):
         print("WuxiaWorld novel "+self.titre)
         print('last chapter: '+str(self.getLastChapter()))
