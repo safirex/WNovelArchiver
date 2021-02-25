@@ -23,6 +23,7 @@ Clone or download the repo  <br>
 (you might be aksed to download some packages)<br>
 
 ## Instructions
+##### more details in https://github.com/safirex/WNovelArchiver/wiki
 The input.txt is used to give the script the entries to download.  
 It should be written in csv style (code;novelname):  
 The novel name can be let empty, in this case the script will fetch the novel name from the site  
