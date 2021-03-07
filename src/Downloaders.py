@@ -429,6 +429,8 @@ def checkTitle(str):
     str=str.replace('|','')
     str=str.replace('<','')
     str=str.replace('>','')
+    str=str.replace('\t','')
+    str=str.replace('\u3000','')
     str=str[:250-len('./novel_list/')]
     return str
 
