@@ -151,7 +151,11 @@ def download():
             continue
 
         if code+' '+name not in dirlist:
-            os.mkdir('%s'%dir)
+            try :
+                os.mkdir('%s'%dir)
+            except FileExistsError:
+                print("the folder already exists")
+                continue
         else:
             print(code+' '+name+' folder already imported, update to fetch updates')
             continue
