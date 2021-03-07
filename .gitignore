@@ -8,3 +8,5 @@ __*
 file.config
 zip/
 soshite*
+*.bat
+test.py
