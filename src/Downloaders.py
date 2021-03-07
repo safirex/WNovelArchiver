@@ -56,11 +56,41 @@ class Novel:
     def setCode(self,code):
         self.code=code
 
+
 class SyosetuNovel(Novel):
     def __init__(self,Novel):
         self.site='https://ncode.syosetu.com/'
         self.headers={"user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
         super(SyosetuNovel,self).__init__(Novel.code,Novel.titre)
+    def updatePerDate(self,html):
+        from bs4 import BeautifulSoup
+        from datetime import date
+        import os
+        soup = BeautifulSoup(html, 'html.parser')
+        online_chap_list=[]
+        for h in soup.find_all('dl'):
+            tmpChapTitle=h.find('a').text
+            tmpChapUpdateDate=h.find('dt').text[1:11].replace('/','-')
+            tmp=[tmpChapTitle,tmpChapUpdateDate]
+            online_chap_list.append(tmp)
+
+        dirList=os.listdir(self.getDir())
+        for offlineChap in dirList:
+            fileDir=self.getDir()+'/'+offlineChap
+            modifTime= date.fromtimestamp(os.stat(fileDir).st_mtime)
+            offChapNum =int( offlineChap[:offlineChap.find('_')])
+
+            #time to check if a chap has been modified since download
+            if (offChapNum !=0) & (len(online_chap_list)-1>=offChapNum):
+                onlineDate=online_chap_list[offChapNum-1][1]
+                onlineDate=date.fromisoformat(onlineDate)
+                if(onlineDate > modifTime):
+                    #modif after last revision of chapter
+                    print('need update man')
+                    chap=self.processChapter(int(offChapNum))
+                    chap.createFile(self.dir+'/')
+                    print('updated chap '+str(offChapNum))
+        print("fin update")
 
     def processNovel(self):
         print("sysosetu novel "+self.titre)
@@ -78,20 +108,25 @@ class SyosetuNovel(Novel):
 
         #get the number of chapters (solely for user feedback)
         online_chapter_list=re.findall(r'<a href="/'+self.code+'/'+'(.*?)'+'/">.*?</a>',html,re.S)
+        if(len(online_chapter_list)>=1):
 
-        #get the chapters url
-        #chapter_list=re.findall(r'<a href="/'+self.code+'/'+'.*?'+'/">.*?</a>',html,re.S)
-        lastDL=self.getLastChapter()
-        online_chapter_list=online_chapter_list[lastDL:]
-        #chapter_list=chapter_list[lastDL:]
-        print("there are %d chapters to udpate"%len(online_chapter_list))
-        print(online_chapter_list)
 
-        #chapter_list=re.findall(r'<a href="(.*?)">(.*?)<',str(chapter_list))
-        #i=lastDL+1
-        for chapter_num in online_chapter_list:
-            chap=self.processChapter(int(chapter_num))
-            chap.createFile(self.dir+'/')
+            #get the chapters url
+            lastDL=self.getLastChapter()
+            online_chapter_list=online_chapter_list[lastDL:]
+            print("there are %d chapters to udpate"%len(online_chapter_list))
+            print(online_chapter_list)
+
+            for chapter_num in online_chapter_list:
+                chap=self.processChapter(int(chapter_num))
+                chap.createFile(self.dir+'/')
+
+            #will add new files for every revised chapters
+            self.updatePerDate(html)
+        else:
+            print("this web novel has most likely been terminated")
+
+
 
     def processTocResume(self,html=''):
         if(html==''):
@@ -152,6 +187,27 @@ class SyosetuNovel(Novel):
         print(writer)
         return writer[0]
 
+def test():
+    import os
+
+    x=Novel('n6912eh','My Skills Are Too Strong to Be a Heroine')
+
+    x=x.updateObject()
+    x.setLastChapter(0)
+    print(x)
+    name=x.titre
+    print(name)
+    dir='./novel_list/'+x.code+' '+name
+    print(dir)
+
+
+    print("dir=  "+dir)
+            #dir='./novel_list/'+code+' '+name
+    x.setDir(dir)
+    x.setLastChapter(145)
+    x.processNovel()
+
+#test()
 class KakuyomuNovel(Novel):
     def __init__(self,Novel):
         super().__init__(Novel.code,Novel.titre)
@@ -255,12 +311,8 @@ class N18SyosetuNovel(SyosetuNovel,Novel):
         print('<href="/'+self.code+'/'+'(.*?)'+'/">')
         lastDL=self.getLastChapter()
         online_chapter_list=online_chapter_list[lastDL:]
-        #chapter_list=chapter_list[lastDL:]
-
         print("there are %d chapters to udpate"%len(online_chapter_list))
         print(online_chapter_list)
-
-        #chapter_list=re.findall(r'<a href="(.*?)">(.*?)<',str(chapter_list))
 
         for chapter_num in online_chapter_list:
             chap=self.processChapter(int(chapter_num))
@@ -380,28 +432,7 @@ def checkTitle(str):
     str=str[:250-len('./novel_list/')]
     return str
 
-def test():
-    import os
 
-    x=Novel('n18n8321do','')
-
-    x=x.updateObject()
-    x.setLastChapter(0)
-    print(x)
-    name=x.getNovelTitle()
-    print(name)
-    dir=x.code+' '+name
-    print(dir)
-
-
-    print("dir=  "+dir)
-            #dir='./novel_list/'+code+' '+name
-    x.setDir(dir)
-    x.setLastChapter(0)
-    x.processNovel()
-
-#testToc()
-#test()
 
 
 class WuxiaWorldNovel(Novel):
@@ -415,7 +446,7 @@ class WuxiaWorldNovel(Novel):
         #novel.code = the-trash-of-count
         super(WuxiaWorldNovel,self).__init__(Novel.code,Novel.titre)
 
-    
+
     def processNovel(self):
         print("WuxiaWorld novel "+self.titre)
         print('last chapter: '+str(self.getLastChapter()))
