@@ -219,6 +219,7 @@ class KakuyomuNovel(Novel):
 
 
     def processNovel(self):
+        from bs4 import BeautifulSoup
         print("Kakuyomu novel "+self.titre)
         print('last chapter: '+str(self.getLastChapter()))
         url='https://kakuyomu.jp/works/%s'%self.code
@@ -228,15 +229,25 @@ class KakuyomuNovel(Novel):
         rep=requests.get(url,headers=headers)
         rep.encoding='utf-8'
         html=rep.text
-        chapList=re.findall(chapterListDiv,html,re.DOTALL)[1:]
-        chapList=chapList[self.getLastChapter():]
+
+        #test
+        soup = BeautifulSoup(html, 'html.parser')
+        online_chap_list=[]
+        print(soup.find_all("a","widget-toc-chapter"))
+        print("end")
+        soup=soup.find('div',"widget-toc-main")
+        regex=str(self.code)+"/episodes/"
+        chapList=[]
+        chapList=soup.find_all(href=re.compile(regex))[self.getLastChapter():]
+        for i in range(0,len(chapList)) :
+            chapList[i]=str(chapList[i].get('href'))
         print()
         print("there are %d chapters to udpate"%len(chapList))
         print(chapList)
         print()
         for chap in chapList: #last chapter = 0 at beginning
             self.setLastChapter(self.getLastChapter()+1)
-            chapter_url=url+'/episodes/'+chap
+            chapter_url='https://kakuyomu.jp'+str(chap)
             print('chapter: '+str(self.getLastChapter())+'  '+chapter_url)
             self.processChapter(chapter_url)
 
