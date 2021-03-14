@@ -121,15 +121,20 @@ def download():
         code=novel_info[0]
         if code=='':
             continue
-
+        
         name=novel_info[1]
         #print('i '+name)
-
+        
         novel=Downloaders.Novel(code,name)
         novel=novel.updateObject()
         if(novel==0):
             continue
-
+        
+        #detect if the novel has already been downloaded
+        match=findNovel(code)
+        if (len(match)>0):
+            print(match[0][:25]+'... \tfolder already exists')
+            continue
         dir=''
         if (name==''):
             dir='./novel_list/'
@@ -141,16 +146,7 @@ def download():
         else:
             name=Downloaders.checkTitle(name)
             dir='./novel_list/'+code+' '+name
-        dirlist=os.listdir('./novel_list/')
-        bool='false'
-        for file in dirlist:
-            if (file[:7]==code):
-                bool=file
-        if bool!='false':
-            print(bool[:25]+'... \tfolder already exists')
-            continue
-
-        if code+' '+name not in dirlist:
+        if code+' '+name not in match:
             try :
                 os.mkdir('%s'%dir)
             except FileExistsError:
