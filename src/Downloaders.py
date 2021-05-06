@@ -238,7 +238,14 @@ class KakuyomuNovel(Novel):
         soup=soup.find('div',"widget-toc-main")
         regex=str(self.code)+"/episodes/"
         chapList=[]
+        
+        if(soup is None):
+            exit()
+        
         chapList=soup.find_all(href=re.compile(regex))[self.getLastChapter():]
+        
+        
+        
         for i in range(0,len(chapList)) :
             chapList[i]=str(chapList[i].get('href'))
         print()

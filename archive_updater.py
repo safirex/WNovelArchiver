@@ -129,11 +129,11 @@ def download():
         novel=novel.updateObject()
         if(novel==0):
             continue
-        
+
         #detect if the novel has already been downloaded
         match=findNovel(code)
         if (len(match)>0):
-            print(match[0][:25]+'... \tfolder already exists')
+            print(match[0][:25]+'... \t folder already exists')
             continue
         dir=''
         if (name==''):
