@@ -116,6 +116,14 @@ def getNovelInfoFromFolderName(folderName):
 
 
 def download():
+    #check if it's the first time download
+    try:
+        os.mkdir("novel_list")
+    except :
+        pass
+
+
+
     novel_list=getInputFile()
     for novel_info in novel_list:
         code=novel_info[0]
