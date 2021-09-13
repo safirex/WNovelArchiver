@@ -11,7 +11,8 @@ import Downloaders
 def archiveUpdate(dirList=[]):
     if not dirList:
         dirList=os.listdir('./novel_list')
-
+    print("list=")
+    print(dirList)
 
     for novel_folder in dirList:
         print()
@@ -116,14 +117,6 @@ def getNovelInfoFromFolderName(folderName):
 
 
 def download():
-    #check if it's the first time download
-    try:
-        os.mkdir("novel_list")
-    except :
-        pass
-
-
-
     novel_list=getInputFile()
     for novel_info in novel_list:
         code=novel_info[0]
@@ -165,6 +158,7 @@ def download():
             continue
 
         print("dir=  "+dir)
+        
         #dir='./novel_list/'+code+' '+name
         novel.setDir(dir)
         novel.setLastChapter(0)

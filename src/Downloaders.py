@@ -203,12 +203,11 @@ def test():
 
 
     print("dir=  "+dir)
-            #dir='./novel_list/'+code+' '+name
+    #dir='./novel_list/'+code+' '+name
     x.setDir(dir)
     x.setLastChapter(145)
     x.processNovel()
 
-#test()
 class KakuyomuNovel(Novel):
     def __init__(self,Novel):
         super().__init__(Novel.code,Novel.titre)
@@ -241,23 +240,21 @@ class KakuyomuNovel(Novel):
         chapList=[]
         
         if(soup is None):
-            exit()
-        
-        chapList=soup.find_all(href=re.compile(regex))[self.getLastChapter():]
-        
-        
-        
-        for i in range(0,len(chapList)) :
-            chapList[i]=str(chapList[i].get('href'))
-        print()
-        print("there are %d chapters to udpate"%len(chapList))
-        print(chapList)
-        print()
-        for chap in chapList: #last chapter = 0 at beginning
-            self.setLastChapter(self.getLastChapter()+1)
-            chapter_url='https://kakuyomu.jp'+str(chap)
-            print('chapter: '+str(self.getLastChapter())+'  '+chapter_url)
-            self.processChapter(chapter_url)
+            print("the novel has most likely been terminated")
+        else:
+            chapList=soup.find_all(href=re.compile(regex))[self.getLastChapter():]
+            
+            for i in range(0,len(chapList)) :
+                chapList[i]=str(chapList[i].get('href'))
+            print()
+            print("there are %d chapters to udpate"%len(chapList))
+            print(chapList)
+            print()
+            for chap in chapList: #last chapter = 0 at beginning
+                self.setLastChapter(self.getLastChapter()+1)
+                chapter_url='https://kakuyomu.jp'+str(chap)
+                print('chapter: '+str(self.getLastChapter())+'  '+chapter_url)
+                self.processChapter(chapter_url)
 
 
     def processChapter(self,chapter_url):
