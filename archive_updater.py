@@ -41,15 +41,17 @@ def archiveUpdate(dirList=[]):
         novel.processNovel()
 
 
-def archiveFullUpdate():
-    for novel_folder in os.listdir('./novel_list'):
+def archiveFullUpdate(dirList=[],force=False):
+    if not dirList:
+        dirList=os.listdir('./novel_list')
+    for novel_folder in dirList:
         print()
         NFs=getNovelInfoFromFolderName(novel_folder)
         novel_name=NFs[0]   #novel_folder[code:]
         code=NFs[1]         #novel_folder[:code]
         #here we got the novel code and our folder name
 
-        #let's change the fetching process behaviour following the site it's hosted on
+        #we adapt the fetching process behaviour following the site it's hosted on
         novel=Downloaders.Novel(code,novel_name)
         novel=novel.updateObject()
         if(novel==0):
@@ -72,7 +74,7 @@ def archiveFullUpdate():
         print(code_list)
         for i in range(0,int(last_downloaded)):
 
-            if '%s'%i not in code_list:
+            if '%s'%i not in code_list or force==True:
                 print('no '+str(i))
                 if int(i) == 0 and isinstance(novel,Downloaders.SyosetuNovel) :
                     novel.processTocResume()
@@ -82,6 +84,11 @@ def archiveFullUpdate():
                     chap=int(i)
                     novel.processChapter(chap)
                     continue
+                #TODO:
+                elif isinstance(novel,Downloaders.KakuyomuNovel):
+                    novel.setLastChapter(last_downloaded)
+                    novel.setDir('./novel_list/'+novel_folder)
+                    novel.processNovel()
         novel.setLastChapter(int(last_downloaded))
         #now that we have the number of the last chapter and the novel code
         #let's update the archive
@@ -254,10 +261,12 @@ def parser():
         type=str,default=argparse.SUPPRESS)
     parser.add_argument("-o", help="output directory (only works for compression)",
         type=str,default=argparse.SUPPRESS)
-    
+    parser.add_argument("-f", help="force",action='store_true'
+        ,default=argparse.SUPPRESS)
 
     args = parser.parse_args()
     print(args)
+    regex=''
     if args.mode:
         if(args.mode==downloadInput):
             print("downloading")
@@ -265,13 +274,17 @@ def parser():
         elif(args.mode==updateInput):
             if hasattr(args, 'r'):
                 regex=args.r
-                archiveUpdate(findNovel(regex))
-            else:
-                archiveUpdate()
+            archiveUpdate(findNovel(regex))
         elif(args.mode==statusInput):
             getFolderStatus()
         elif(args.mode==fullupdateInput):
-            archiveFullUpdate()
+            if hasattr(args, 'r'):
+                regex=args.r
+
+            if hasattr(args, 'f'):
+                archiveFullUpdate(findNovel(regex),True)
+            else:
+                archiveFullUpdate(findNovel(regex))
         elif(args.mode==compressInput):
             print('compression')
             print(args)

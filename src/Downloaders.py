@@ -258,26 +258,17 @@ class KakuyomuNovel(Novel):
 
 
     def processChapter(self,chapter_url):
+        from bs4 import BeautifulSoup
+
         rep=requests.get(chapter_url)#,headers=headers)
         html=rep.text
         chapter_title=self.getChapterTitle(html)
         print(chapter_title)
-        content=re.findall('<p id="p.*">(.*?)</p>',html)
-        contentUPDATED=[]
-        for sentence in content:
-            sentence = sentence.replace('<br />','\n')
-            sentence = sentence.replace('<ruby>','')
-            sentence = sentence.replace('</ruby>','')
-            sentence = sentence.replace('<rp>','')
-            sentence = sentence.replace('</rp>','')
-            sentence = sentence.replace('<rt>','')
-            sentence = sentence.replace('</rt>','')
-            sentence = sentence.replace('<rb>','')
-            #signal character superpose
-            sentence = sentence.replace('</rb>','//')
-            sentence += '\n'
-            contentUPDATED.append(sentence)
-        self.createFile(chapter_title,contentUPDATED,chapter_url)
+        soup=BeautifulSoup(html, 'html.parser')
+        content=soup.find('div','widget-episodeBody')
+        content=content.getText()
+        
+        self.createFile(chapter_title,content,chapter_url)
 
 
     def createFile(self,chapter_title,chapter_content,chapter_url):
