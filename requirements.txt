@@ -1,11 +1,7 @@
 ###### Requirements without Version Specifiers ######`
 beautifulsoup4
 bs4
-
-os
-argparse
-unittest
-http.cookiejar
+cookiejar
 mechanize
 
 ###### Requirements with Version Specifiers ######`
