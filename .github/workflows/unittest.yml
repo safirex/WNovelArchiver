@@ -1,10 +1,10 @@
-name: py unittest CI
-
-on: push
-
+name: Test
+on: [push]
 jobs:
   test:
-    name: testing unittests
-    runs-on: windows-latest 
+    runs-on: ubuntu-latest
     steps:
-      run: py .\tests\tests.py
+      - name: Prepare repo
+        uses: actions/checkout@master
+      - name: Test
+        uses: onichandame/python-test-action@master
