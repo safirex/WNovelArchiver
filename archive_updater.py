@@ -5,7 +5,7 @@ sys.path.append('.\src')
 
 import main_functions as mf
 
-keep_text_format =False
+
 
 updateInput='u'
 fullupdateInput='fu'
@@ -39,7 +39,7 @@ def parser():
     print(args)
     regex=''
     if args.mode:
-
+        keep_text_format =False
         if(args.mode==downloadInput):
             print("downloading")
 
