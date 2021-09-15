@@ -1,7 +1,7 @@
 ###### Requirements without Version Specifiers ######`
 beautifulsoup4
 bs4
-sys
+
 os
 argparse
 unittest
