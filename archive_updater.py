@@ -231,10 +231,11 @@ def compressAll(regex='',outputDir=''):
     return(DirToCompress)
 
 def findNovel(regex,dir='./novel_list'):
+    import re
     liste=[]
-    for novel_folder in os.listdir(dir):
-        if novel_folder.find(regex)!=-1:
-            liste.append(novel_folder)
+    regex=  re.compile(regex)
+    novel_folders=os.listdir(dir)
+    liste=filter(regex.match, novel_folders)
     return liste
 
 
