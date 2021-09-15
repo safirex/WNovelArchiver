@@ -54,7 +54,7 @@ def parser():
             
             if hasattr(args, 'md'):
                 keep_text_format=True
-            mf.archiveUpdate(mf.findNovel(regex),True)
+            mf.archiveUpdate(mf.findNovel(regex),keep_text_format)
 
         elif(args.mode==statusInput):
             mf.getFolderStatus()
