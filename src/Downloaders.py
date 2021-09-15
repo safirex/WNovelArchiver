@@ -6,9 +6,12 @@ from bs4 import BeautifulSoup
 
 
 class Novel:
-    def __init__(self, codeNovel, titreNovel):
+    def __init__(self, codeNovel, titreNovel, keep_text_format=False):
+        
         self.code = codeNovel
         self.titre = titreNovel
+        self.keep_text_format = keep_text_format
+        
 
     def download(self) -> str:
         """download chapter from site."""
@@ -82,7 +85,7 @@ class SyosetuNovel(Novel):
         self.site = 'https://ncode.syosetu.com/'
         self.headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
-        super(SyosetuNovel, self).__init__(Novel.code, Novel.titre)
+        super(SyosetuNovel, self).__init__(Novel.code, Novel.titre, Novel.keep_text_format)
 
     def updatePerDate(self, html):
         from bs4 import BeautifulSoup
@@ -243,7 +246,7 @@ def test():
 
 class KakuyomuNovel(Novel):
     def __init__(self, Novel):
-        super().__init__(Novel.code, Novel.titre)
+        super().__init__(Novel.code, Novel.titre, Novel.keep_text_format)
 
     def getChapterTitle(self, str):
         chapter_title = re.findall(
@@ -298,21 +301,33 @@ class KakuyomuNovel(Novel):
         chapter_title = self.getChapterTitle(html)
         print(chapter_title)
         soup = BeautifulSoup(html, 'html.parser')
-        content = soup.find('div', 'widget-episodeBody')
-        content = content.getText()
+        soup = soup.find('div', 'widget-episodeBody')
+        content=[]
 
+        if (self.keep_text_format == False):
+            content = soup.getText()
+        else:
+            content=str(soup)
+        
         self.createFile(chapter_title, content, chapter_url)
 
     def createFile(self, chapter_title, chapter_content, chapter_url):
+        file_extension ='txt'
+        print(self.keep_text_format)
+        if(self.keep_text_format==True):
+            file_extension='md'
+            print("file extension is md")
+
         chapter_title = checkTitle(chapter_title)
-        file = open('%s/%d_%s.txt' % (self.getDir(),
-                                      self.getLastChapter(), chapter_title), 'w+', encoding='utf-8')
+        file = open('%s/%d_%s.%s' % (self.getDir(), self.getLastChapter(), chapter_title, file_extension)
+                    , 'w+', encoding='utf-8')
         file.write(chapter_url+'\n')
         file.write(chapter_title+'\n')
         for sentence in chapter_content:
             file.write(sentence)
         file.close()
-
+    
+    
     def getNovelTitle(self):
         titlediv = '<h1 id="workTitle"><a href="/works/%s">' % self.code
         url = 'https://kakuyomu.jp/works/%s' % self.code

@@ -1,7 +1,8 @@
+from logging import fatal
 import Downloaders
 import os
 
-def archiveUpdate(dirList=[]):
+def archiveUpdate(dirList=[],keep_text_format=False):
     if not dirList:
         dirList=os.listdir('./novel_list')
     print("list=")
@@ -11,7 +12,8 @@ def archiveUpdate(dirList=[]):
         print()
         novelInfo=getNovelInfoFromFolderName(novel_folder)
         #change the fetching process following the site it's hosted on
-        novel=Downloaders.Novel(novelInfo[1],novelInfo[0])
+        
+        novel=Downloaders.Novel(novelInfo[1],novelInfo[0],keep_text_format)
         novel=novel.updateObject()
         if(novel==0):
             print(novel_folder+' couldnt be updated because the code doesnt match known formats')
@@ -114,7 +116,7 @@ def getNovelInfoFromFolderName(folderName):
 
 
 
-def download():
+def download(keep_text_format=False):
     if('novel_list' not in os.listdir('.')):
         os.mkdir('novel_list')
     novel_list=getInputFile()
@@ -126,7 +128,8 @@ def download():
         name=novel_info[1]
         #print('i '+name)
         
-        novel=Downloaders.Novel(code,name)
+        print(keep_text_format)
+        novel=Downloaders.Novel(code,name,keep_text_format)
         novel=novel.updateObject()
         if(novel==0):
             continue
