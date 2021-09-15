@@ -1,0 +1,12 @@
+###### Requirements without Version Specifiers ######`
+beautifulsoup4
+bs4
+sys
+os
+argparse
+unittest
+http.cookiejar
+mechanize
+
+###### Requirements with Version Specifiers ######`
+requests~=2.25      # Compatible release.

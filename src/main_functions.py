@@ -1,4 +1,3 @@
-from logging import fatal
 import Downloaders
 import os
 
