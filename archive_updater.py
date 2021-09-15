@@ -37,15 +37,19 @@ def parser():
     print(args)
     regex=''
     if args.mode:
+
         if(args.mode==downloadInput):
             print("downloading")
             mf.download()
+            
         elif(args.mode==updateInput):
             if hasattr(args, 'r'):
                 regex=args.r
             mf.archiveUpdate(mf.findNovel(regex))
+
         elif(args.mode==statusInput):
             mf.getFolderStatus()
+
         elif(args.mode==fullupdateInput):
             if hasattr(args, 'r'):
                 regex=args.r
@@ -54,6 +58,7 @@ def parser():
                 mf.archiveFullUpdate(mf.findNovel(regex),True)
             else:
                 mf.archiveFullUpdate(mf.findNovel(regex))
+
         elif(args.mode==compressInput):
             print('compression')
             print(args)

@@ -2,6 +2,7 @@
 import requests
 import re
 import Chapters
+from bs4 import BeautifulSoup
 
 class Novel:
     def __init__(self,codeNovel,titreNovel):
@@ -21,7 +22,7 @@ class Novel:
         pass
 
 
-    #instanciate an object depending of the code
+    #instanciate an object depending of the object code
     def updateObject(self):
         if(len(self.code)>7 and self.code.find('n18n')==0):
             return N18SyosetuNovel(self)
@@ -35,12 +36,22 @@ class Novel:
         else:
             return 0
 
-    def createFile(self,chapterNumber,chapter_title,chapter_content):
+    def createFile(self,chapterNumber,chapter_title,chapter_content: str):
         chapter_title=checkTitle(chapter_title)
         print('saving %s %s'%(chapterNumber,chapter_title))
         file = open('%s/%d_%s.txt'%(self.getDir(),chapterNumber,chapter_title), 'w+', encoding='utf-8')
         file.write(chapter_title+'\n')
         file.write(chapter_content)
+        file.close()
+        print('\n\n')
+
+    def createFile(self,chapterNumber,chapter_title,chapter_content: list):
+        chapter_title=checkTitle(chapter_title)
+        print('saving %s %s'%(chapterNumber,chapter_title))
+        file = open('%s/%d_%s.txt'%(self.getDir(),chapterNumber,chapter_title), 'w+', encoding='utf-8')
+        file.write(chapter_title+'\n')
+        for line in chapter_content:
+            file.write(str(line))
         file.close()
         print('\n\n')
 
@@ -104,28 +115,33 @@ class SyosetuNovel(Novel):
         rep=requests.get(url,headers=headers)
         rep.encoding='utf-8'
         html=rep.text
-        if(self.getLastChapter()==0):
-            self.processTocResume(html)
 
         #get the number of chapters (solely for user feedback)
+        online_chap_list=[]
         online_chapter_list=re.findall(r'<a href="/'+self.code+'/'+'(.*?)'+'/">.*?</a>',html,re.S)
-        if(len(online_chapter_list)>=1):
-
-
-            #get the chapters url
-            lastDL=self.getLastChapter()
-            online_chapter_list=online_chapter_list[lastDL:]
-            print("there are %d chapters to udpate"%len(online_chapter_list))
-            print(online_chapter_list)
-
-            for chapter_num in online_chapter_list:
-                chap=self.processChapter(int(chapter_num))
-                chap.createFile(self.dir+'/')
-
-            #will add new files for every revised chapters
-            self.updatePerDate(html)
+        if(online_chapter_list is None or len(online_chapter_list)==0):
+            print("the novel has most likely been terminated\n")
         else:
-            print("this web novel has most likely been terminated")
+            
+            if(self.getLastChapter()==0):
+                self.processTocResume(html)
+            if(len(online_chapter_list)>=1):
+
+
+                #get the chapters url
+                lastDL=self.getLastChapter()
+                online_chapter_list=online_chapter_list[lastDL:]
+                print("there are %d chapters to udpate"%len(online_chapter_list))
+                print(online_chapter_list)
+
+                for chapter_num in online_chapter_list:
+                    chap=self.processChapter(int(chapter_num))
+                    chap.createFile(self.dir+'/')
+
+                #will add new files for every revised chapters
+                self.updatePerDate(html)
+            else:
+                print("this web novel has most likely been terminated")
 
 
 
@@ -137,11 +153,19 @@ class SyosetuNovel(Novel):
             rep.encoding='utf-8'
             html=rep.text
         #print(html)
-        resume=re.findall('<div id="novel_ex">'+'(.*?)'+'</div>',html,re.S)[0]
-        resume=self.cleanText(resume)
-        title='novel title= '+self.getNovelTitle()
-        resume=title+'\n\n'+resume
-        self.createFile(0,'TOC',resume)
+
+
+        #change to exception handling
+        soup = BeautifulSoup(html, 'html.parser')
+        resume=soup.find_all("div",id="novel_ex")
+        #resume=re.findall('<div id="novel_ex">'+'(.*?)'+'</div>',html,re.S)[0]
+        if(resume is None):
+            print("the novel has most likely been terminated")
+        else:
+            #self.cleanText(resume)
+            string='novel title= '+self.getNovelTitle()+'\n\n'
+            resume.insert(0,string)
+            self.createFile(0,'TOC',resume)
 
     def processChapter(self,chapter_num):
         chapter=Chapters.SyosetuChapter(self.code,chapter_num)
