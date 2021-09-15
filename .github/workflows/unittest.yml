@@ -1,0 +1,10 @@
+name: py unittest CI
+
+on: push
+
+jobs:
+  test:
+    name: testing unittests
+    runs-on: windows-latest 
+    steps:
+      run: py .\tests\tests.py
