@@ -11,15 +11,10 @@ from main_functions import findNovel
 
 
 
-
-#target = __import__("my_sum.py")
 #sum = target.sum
 
 
 class TestMainFunctions(unittest.TestCase):
-
-    def check_environment(self):
-        check_env()
 
     def test_find(self):
         self.assertTrue(len(findNovel("")) ==
@@ -27,4 +22,6 @@ class TestMainFunctions(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    target = __import__("../archive_updater.py")
+    target.check_env()
     unittest.main()
