@@ -5,7 +5,6 @@ sys.path.append('.\src')
 
 import main_functions as mf
 
-keep_text_format =False
 
 updateInput='u'
 fullupdateInput='fu'
@@ -38,30 +37,29 @@ def parser():
     args = parser.parse_args()
     print(args)
     regex=''
+    keep_text_format=False
+
     if args.mode:
+        
+        if hasattr(args, 'md'):
+            keep_text_format=True
+
+        if hasattr(args, 'r'):
+            regex=args.r
 
         if(args.mode==downloadInput):
             print("downloading")
-
-            if hasattr(args, 'md'):
-                keep_text_format=True
-
             mf.download(keep_text_format)
             
         elif(args.mode==updateInput):
-            if hasattr(args, 'r'):
-                regex=args.r
             
-            if hasattr(args, 'md'):
-                keep_text_format=True
-            mf.archiveUpdate(mf.findNovel(regex),True)
+            
+            mf.archiveUpdate(mf.findNovel(regex),keep_text_format)
 
         elif(args.mode==statusInput):
             mf.getFolderStatus()
 
         elif(args.mode==fullupdateInput):
-            if hasattr(args, 'r'):
-                regex=args.r
 
             if hasattr(args, 'f'):
                 mf.archiveFullUpdate(mf.findNovel(regex),True)
@@ -71,12 +69,10 @@ def parser():
         elif(args.mode==compressInput):
             print('compression')
             print(args)
-            regex=''
             out=''
-            if hasattr(args, 'r'):
-                regex=args.r
             if hasattr(args, 'o'):
                 out=args.o
             mf.compressAll(regex,out)
+
 
 parser()
