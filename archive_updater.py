@@ -1,8 +1,8 @@
 # coding: utf-8
 from argparse import RawDescriptionHelpFormatter
 import sys
+import os
 sys.path.append('.\src')
-
 import main_functions as mf
 
 
@@ -11,6 +11,12 @@ fullupdateInput='fu'
 downloadInput='d'
 statusInput='s'
 compressInput='c'
+def check_env():
+    try: 
+        os.listdir('novel_list')
+    except FileNotFoundError as err: 
+        os.mkdir('novel_list')
+
 
 
 
@@ -74,4 +80,5 @@ def parser():
                 out=args.o
             mf.compressAll(regex,out)
 
+check_env()
 parser()
