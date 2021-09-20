@@ -74,5 +74,4 @@ def parser():
                 out=args.o
             mf.compressAll(regex,out)
 
-
 parser()
