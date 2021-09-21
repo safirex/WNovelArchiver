@@ -11,6 +11,7 @@ sys.path.append('..\src')
 from src.main_functions import *
 
 
+
 updateInput='u'
 fullupdateInput='fu'
 downloadInput='d'
@@ -63,8 +64,10 @@ def parser():
             
         elif(args.mode==updateInput):
             
+
             
             archiveUpdate(findNovel(regex),keep_text_format)
+
 
         elif(args.mode==statusInput):
             getFolderStatus()
@@ -88,3 +91,4 @@ if __name__ == '__main__':
     
     check_env()
     parser()
+
