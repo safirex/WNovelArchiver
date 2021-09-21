@@ -3,7 +3,7 @@ from argparse import RawDescriptionHelpFormatter
 import sys
 import os
 sys.path.append('.\src')
-import main_functions as mf
+from main_functions import *
 
 
 updateInput='u'
@@ -55,22 +55,22 @@ def parser():
 
         if(args.mode==downloadInput):
             print("downloading")
-            mf.download(keep_text_format)
+            download(keep_text_format)
             
         elif(args.mode==updateInput):
             
             
-            mf.archiveUpdate(mf.findNovel(regex),keep_text_format)
+            archiveUpdate(findNovel(regex),keep_text_format)
 
         elif(args.mode==statusInput):
-            mf.getFolderStatus()
+            getFolderStatus()
 
         elif(args.mode==fullupdateInput):
 
             if hasattr(args, 'f'):
-                mf.archiveFullUpdate(mf.findNovel(regex),True)
+                archiveFullUpdate(findNovel(regex),True)
             else:
-                mf.archiveFullUpdate(mf.findNovel(regex))
+                archiveFullUpdate(findNovel(regex))
 
         elif(args.mode==compressInput):
             print('compression')
@@ -78,7 +78,7 @@ def parser():
             out=''
             if hasattr(args, 'o'):
                 out=args.o
-            mf.compressAll(regex,out)
+            compressAll(regex,out)
 
 if __name__ == '__main__':
     check_env()
