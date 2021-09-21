@@ -8,6 +8,8 @@ sys.path.append('.\src')
 sys.path.append('..\src')
 
 
+from src.main_functions import *
+
 
 updateInput='u'
 fullupdateInput='fu'
@@ -84,6 +86,5 @@ def parser():
 
 if __name__ == '__main__':
     
-    from src.main_functions import *
     check_env()
     parser()
