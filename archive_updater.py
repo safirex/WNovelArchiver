@@ -7,7 +7,6 @@ import os
 sys.path.append('.\src')
 sys.path.append('..\src')
 
-from src.main_functions import *
 
 
 updateInput='u'
@@ -84,5 +83,7 @@ def parser():
             compressAll(regex,out)
 
 if __name__ == '__main__':
+    
+    from src.main_functions import *
     check_env()
     parser()
