@@ -80,5 +80,6 @@ def parser():
                 out=args.o
             mf.compressAll(regex,out)
 
-check_env()
-parser()
+if __name__ == '__main__':
+    check_env()
+    parser()
