@@ -4,7 +4,8 @@ light_novel/
 input.txt
 n*/
 __*
-.*
+settings*
+.vs*
 file.config
 zip/
 soshite*

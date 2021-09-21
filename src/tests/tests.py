@@ -1,3 +1,4 @@
+from archive_updater import check_env
 import os
 import sys
 import unittest
@@ -8,6 +9,13 @@ sys.path.append('src')
 
 from main_functions import findNovel
 
+
+
+
+#target = __import__("my_sum.py")
+#sum = target.sum
+
+
 class TestMainFunctions(unittest.TestCase):
 
     def test_find(self):
@@ -16,4 +24,5 @@ class TestMainFunctions(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    check_env()
     unittest.main()
