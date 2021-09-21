@@ -4,7 +4,8 @@ import sys
 import os
 sys.path.append('.\src')
 sys.path.append('..\src')
-from main_functions import *
+
+from src.main_functions import *
 
 
 updateInput='u'
