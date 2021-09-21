@@ -1,4 +1,4 @@
-import Downloaders
+from . import Downloaders
 import os
 
 def archiveUpdate(dirList=[],keep_text_format=False):

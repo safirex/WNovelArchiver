@@ -1,7 +1,7 @@
 # coding: utf-8
 import requests
 import re
-import Chapters
+from . import Chapters
 from bs4 import BeautifulSoup
 
 

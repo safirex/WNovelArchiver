@@ -1,4 +1,6 @@
 # coding: utf-8
+
+import argparse
 from argparse import RawDescriptionHelpFormatter
 import sys
 import os
@@ -23,7 +25,6 @@ def check_env():
 
 
 def parser():
-    import argparse
     parser = argparse.ArgumentParser(description="""        c to compress novels in zip
         d to download input.txt list
         s to update status.csv
