@@ -3,7 +3,7 @@ import requests
 import re
 from bs4 import BeautifulSoup
 
-from Chapters import *
+from src.Chapters import *
 
 
 class Novel:

@@ -1,6 +1,6 @@
 import os
 
-from  Downloaders import *
+from  src.Downloaders import *
 
 def archiveUpdate(dirList=[],keep_text_format=False):
     if not dirList:
