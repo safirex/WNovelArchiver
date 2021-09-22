@@ -14,14 +14,6 @@ If your connection isn't stable, the script may (will) crash while downloading.
 * Kakuyomu
 * Wuxiaworld.com
 
-
-## How to use
-
-Clone or download the repo  <br>
-<code>cd WNovelArchiver</code><br>
-<code>python archive_updater.py</code><br>
-(you might be aksed to download some packages)<br>
-
 ## Instructions
 ##### more details in https://github.com/safirex/WNovelArchiver/wiki
 The input.txt is used to give the script the entries to download.  
