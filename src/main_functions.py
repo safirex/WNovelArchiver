@@ -13,7 +13,7 @@ def archiveUpdate(dirList=[],keep_text_format=False):
         novelInfo=getNovelInfoFromFolderName(novel_folder)
         #change the fetching process following the site it's hosted on
         
-        novel=Downloaders.Novel(novelInfo[1],novelInfo[0],keep_text_format)
+        novel=Novel(novelInfo[1],novelInfo[0],keep_text_format)
         novel=novel.updateObject()
         if(novel==0):
             print(novel_folder+' couldnt be updated because the code doesnt match known formats')
@@ -47,7 +47,7 @@ def archiveFullUpdate(dirList=[],force=False):
         #here we got the novel code and our folder name
 
         #we adapt the fetching process behaviour following the site it's hosted on
-        novel=Downloaders.Novel(code,novel_name)
+        novel=Novel(code,novel_name)
         novel=novel.updateObject()
         if(novel==0):
             print(novel_folder+' couldnt be updated')
@@ -71,16 +71,16 @@ def archiveFullUpdate(dirList=[],force=False):
 
             if '%s'%i not in code_list or force==True:
                 print('no '+str(i))
-                if int(i) == 0 and isinstance(novel,Downloaders.SyosetuNovel) :
+                if int(i) == 0 and isinstance(novel,SyosetuNovel) :
                     novel.processTocResume()
                     continue
-                elif isinstance(novel,Downloaders.SyosetuNovel) :
+                elif isinstance(novel,SyosetuNovel) :
                     novel.setLastChapter(int(i)) #work around cause conception is shit
                     chap=int(i)
                     novel.processChapter(chap)
                     continue
                 #TODO:
-                elif isinstance(novel,Downloaders.KakuyomuNovel):
+                elif isinstance(novel,KakuyomuNovel):
                     novel.setLastChapter(last_downloaded)
                     novel.setDir('./novel_list/'+novel_folder)
                     novel.processNovel()
@@ -129,7 +129,7 @@ def download(keep_text_format=False):
         #print('i '+name)
         
         print(keep_text_format)
-        novel=Downloaders.Novel(code,name,keep_text_format)
+        novel=Novel(code,name,keep_text_format)
         novel=novel.updateObject()
         if(novel==0):
             continue
@@ -144,12 +144,12 @@ def download(keep_text_format=False):
         if (name==''):
             dir='./novel_list/'
             name=novel.getNovelTitle()
-            name=Downloaders.checkTitle(name)
+            name=checkTitle(name)
             print(name)
             dir+=code+' '+name
             print(dir)
         else:
-            name=Downloaders.checkTitle(name)
+            name=checkTitle(name)
             dir='./novel_list/'+code+' '+name
         if code+' '+name not in match:
             try :

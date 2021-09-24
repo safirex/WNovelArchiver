@@ -181,7 +181,7 @@ class SyosetuNovel(Novel):
             self.createFile(0, 'TOC', resume)
 
     def processChapter(self, chapter_num):
-        chapter = Chapters.SyosetuChapter(self.code, chapter_num)
+        chapter = SyosetuChapter(self.code, chapter_num)
         chapter_rep = requests.get(chapter.getUrl(), headers=self.headers)
         chapter_rep.encoding = 'utf-8'
         chapter_html = chapter_rep.text
@@ -376,7 +376,7 @@ class N18SyosetuNovel(SyosetuNovel, Novel):
             chap.createFile(self.dir+'/')
 
     def processChapter(self, chapter_num):
-        chapter = Chapters.N18SyosetuChapter(self.code, chapter_num)
+        chapter = N18SyosetuChapter(self.code, chapter_num)
         chapter_html = self.connectViaMechanize(
             '%s/%s/%s/' % (self.site, self.code, chapter_num))
         chapter.getTitle(chapter_html)
@@ -525,7 +525,7 @@ class WuxiaWorldNovel(Novel):
             chapter.createFile(self.dir+'/')
 
     def processChapter(self, chapter_url, chapter_num):
-        chapter = Chapters.WuxiaWorldChapter(chapter_url, chapter_num)
+        chapter = WuxiaWorldChapter(chapter_url, chapter_num)
         # chapter_rep=requests.get(chapter.getUrl(),headers=self.headers)
         # chapter_rep.encoding='utf-8'
         chapter_html = self.connectViaMechanize(chapter_url)

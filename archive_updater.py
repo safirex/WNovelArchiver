@@ -17,10 +17,11 @@ fullupdateInput='fu'
 downloadInput='d'
 statusInput='s'
 compressInput='c'
+
 def check_env():
     try: 
         os.listdir('novel_list')
-    except FileNotFoundError as err: 
+    except FileNotFoundError: 
         os.mkdir('novel_list')
 
 
@@ -51,7 +52,6 @@ def parser():
     keep_text_format=False
 
     if args.mode:
-        
         if hasattr(args, 'md'):
             keep_text_format=True
 
@@ -63,9 +63,6 @@ def parser():
             download(keep_text_format)
             
         elif(args.mode==updateInput):
-            
-
-            
             archiveUpdate(findNovel(regex),keep_text_format)
 
 
@@ -73,7 +70,6 @@ def parser():
             getFolderStatus()
 
         elif(args.mode==fullupdateInput):
-
             if hasattr(args, 'f'):
                 archiveFullUpdate(findNovel(regex),True)
             else:
@@ -88,7 +84,6 @@ def parser():
             compressAll(regex,out)
 
 if __name__ == '__main__':
-    
     check_env()
     parser()
 
