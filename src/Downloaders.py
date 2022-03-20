@@ -12,6 +12,7 @@ class Novel:
         self.code = codeNovel
         self.titre = titreNovel
         self.keep_text_format = keep_text_format
+        #return self.updateObject()
         
 
     def download(self) -> str:
@@ -314,7 +315,6 @@ class KakuyomuNovel(Novel):
 
     def createFile(self, chapter_title, chapter_content, chapter_url):
         file_extension ='txt'
-        print(self.keep_text_format)
         if(self.keep_text_format==True):
             file_extension='md'
             print("file extension is md")

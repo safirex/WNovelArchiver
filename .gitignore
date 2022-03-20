@@ -11,3 +11,4 @@ zip/
 soshite*
 *.bat
 test.py
+.env
