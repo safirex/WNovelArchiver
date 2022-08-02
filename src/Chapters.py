@@ -3,8 +3,8 @@ import re
 
 
 
-def checkTitle(str):
-    # make sure the title is conform to windows url settings (260 char max)
+def checkFileName(str) -> str:
+    """ make sure the title is conform to windows url settings (260 char max)"""
     str=str.replace('?','')
     str=str.replace('!','')
     str=str.replace(':','')
@@ -60,7 +60,7 @@ class Chapter():
     def createFile(self,dir):
         print("titre"+self.title)
         print(self.num)
-        chapter_title=checkTitle(self.title)
+        chapter_title=checkFileName(self.title)
         print("titre"+chapter_title)
         print('saving '+str(self.num)+' '+chapter_title)
         file = open('%s/%d_%s.txt'%(dir,self.num,chapter_title), 'w+', encoding='utf-8')
@@ -116,7 +116,7 @@ class N18SyosetuChapter(SyosetuChapter,Chapter):
         return chapter_content
 
     def createFile(self,dir):
-        chapter_title=checkTitle(self.title)
+        chapter_title=checkFileName(self.title)
 
         print('saving '+str(self.num)+' '+chapter_title)
         file = open('%s/%d_%s.txt'%(dir,self.num,chapter_title), 'w+', encoding='utf-8')

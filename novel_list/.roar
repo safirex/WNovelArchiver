@@ -1,1 +1,0 @@
-Commande ECHO activ‚e.

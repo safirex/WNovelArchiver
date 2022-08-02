@@ -90,8 +90,9 @@ def archiveFullUpdate(dirList=[],force=False):
         novel.processNovel()
 
 
-#return code and novel name from input.txt
-def getInputFile():
+
+def getInputFile() -> list[str]:
+    """return code and novel name from input.txt"""
     inputfile=open('input.txt','r+', encoding='utf-8')
     line=inputfile.readline()
     novel_list=[]
@@ -106,8 +107,9 @@ def getInputFile():
     inputfile.close()
     return novel_list
 
-#return code and novel name from novel folder 
-def getNovelInfoFromFolderName(folderName):
+
+def getNovelInfoFromFolderName(folderName) :
+    """return code and novel name from the local novel folder """
     code=       folderName.find(' ')
     novel_name= folderName[code+1:].strip()
     code=       folderName[:code]
@@ -144,12 +146,12 @@ def download(keep_text_format=False):
         if (name==''):
             dir='./novel_list/'
             name=novel.getNovelTitle()
-            name=checkTitle(name)
+            name=checkFileName(name)
             print(name)
             dir+=code+' '+name
             print(dir)
         else:
-            name=checkTitle(name)
+            name=checkFileName(name)
             dir='./novel_list/'+code+' '+name
         if code+' '+name not in match:
             try :
@@ -168,8 +170,9 @@ def download(keep_text_format=False):
         novel.setLastChapter(0)
         novel.processNovel()
 
-#register as csv every folder name and the number of chapter
+
 def getFolderStatus():
+    """register as csv every folder name and the number of chapter"""
     dir='./novel_list'
     statusList=[]
     for novel_folder in os.listdir(dir):
@@ -189,8 +192,9 @@ def getFolderStatus():
         print('%s %s %s'%(code,lastchap,novel_name))
     enterInCSV(dir+'/status.csv',statusList)
 
-#overwrite the file with tab content
+
 def enterInCSV(filename,tab):
+    """overwrite the file with tab content"""
     file = open(filename, 'w+', encoding='utf-8')
     for line in tab:
         file.write('%1s %1s %2s\n'%(line[0],line[1],line[2]))
@@ -209,8 +213,9 @@ def compressNovelDirectory(novelDirectory,outputDir):
     print()
     zipf.close()
 
-#compress in zip format every novel folder found
+
 def compressAll(regex='',outputDir=''):
+    """compress in zip format every novel folder found"""
     if (outputDir==''):
         dirlist=os.listdir('./')
         print(dirlist)
@@ -229,8 +234,9 @@ def compressAll(regex='',outputDir=''):
             compressNovelDirectory(dir+'/'+subdir,outputDir)
     return(DirToCompress)
 
-#find in the novels folder every regex match
+
 def findNovel(regex,dir='./novel_list'):
+    """find in the novels folder every regex match"""
     import re
     liste=[]
     regex=  re.compile(regex)

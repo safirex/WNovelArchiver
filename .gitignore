@@ -12,3 +12,4 @@ soshite*
 *.bat
 test.py
 .env
+.idea

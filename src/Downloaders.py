@@ -1,63 +1,112 @@
 # coding: utf-8
+from abc import ABC
+from gc import callbacks
 import requests
 import re
 from bs4 import BeautifulSoup
 
 from src.Chapters import *
 
+# packages for callbacks
+import callback
+from inspect import signature
+from enum import Enum, auto
 
-class Novel:
+
+class NovelCallbacks():
+    # TODO: replace current callback list to 2DList {'enum',[funcs]}
+    class callbacks(Enum):
+        chapterListFetched = auto(),
+        ChapterBeginUpdate = auto(),
+        NovelBeginUpdate = auto(),
+
+    def __init__(self):
+        self.callbacks_chapterListFetched = []
+        self.callbacks_ChapterBeginUpdate = []
+        self.callbacks_NovelBeginUpdate = []
+
+    def registerCallback(self, callback_List, callback):
+        callback_List.append(callback)
+
+    def exec_callbacks(self, callback_list, args=None):
+        for method in callback_list:
+            sig = signature(method)
+            params = sig.parameters
+            if (len(params) <= 1):
+                method()
+            else:
+                method(args)
+
+    def onChapterListFetched(self, args=None):
+        self.exec_callbacks(self.callbacks_chapterListFetched, args)
+
+    def onChapterBeginUpdate(self, args=None):
+        self.exec_callbacks(self.callbacks_ChapterBeginUpdate, args)
+
+    def onBeginNovelUpdate(self, args=None):
+        self.exec_callbacks(self.callbacks_NovelBeginUpdate, args)
+
+
+class Novel(NovelCallbacks):
     def __init__(self, codeNovel, titreNovel, keep_text_format=False):
-        
+        super(Novel, self).__init__()
         self.code = codeNovel
         self.titre = titreNovel
         self.keep_text_format = keep_text_format
-        #return self.updateObject()
-        
 
-    def download(self) -> str:
+    def tempFunc(self, args):
+        print("callback works")
+
+    def downloadNovel(self, chapter) -> str:
         """download chapter from site."""
         pass
 
     def processNovel(self) -> str:
-        """"will process the html and download the chapter"""
+        """will process the html and download the chapter"""
         pass
 
     def getNovelTitle(self) -> str:
-        """"fetch the novel title from the TOC page"""
+        """fetch the novel title from the TOC page"""
         pass
 
-    # instanciate an object depending of the object code
-
     def updateObject(self):
-        if(len(self.code) > 7 and self.code.find('n18n') == 0):
+        """ instantiate a subclass depending on the object code attribute """
+
+        if (len(self.code) > 7 and self.code.find('n18n') == 0):
             return N18SyosetuNovel(self)
         elif (len(self.code) >= 6 and len(self.code) <= 7 and self.code.find('n') == 0):
             return SyosetuNovel(self)
-        elif(len(self.code) == len('1177354054888541019') or
-             len(self.code) == len('16816452219449457673')):
+        elif (len(self.code) == len('1177354054888541019') or
+              len(self.code) == len('16816452219449457673')):
             return KakuyomuNovel(self)
-        elif(self.code.lower().find('wuxiaworld') == 0):
+        elif (self.code.lower().find('wuxiaworld') == 0):
             return WuxiaWorldNovel(self)
         else:
             return 0
 
+    # not used maybe one day
+    @classmethod
+    def getNovel(codeNovel, titreNovel, keep_text_format=False):
+        """ instantiate a subclass depending on the object code attribute """
+        nov = Novel(codeNovel, titreNovel, keep_text_format=False)
+        return nov.updateObject()
+
     def createFile(self, chapterNumber, chapter_title, chapter_content: str):
-        chapter_title = checkTitle(chapter_title)
+        chapter_title = checkFileName(chapter_title)
         print('saving %s %s' % (chapterNumber, chapter_title))
         file = open('%s/%d_%s.txt' % (self.getDir(), chapterNumber,
                                       chapter_title), 'w+', encoding='utf-8')
-        file.write(chapter_title+'\n')
+        file.write(chapter_title + '\n')
         file.write(chapter_content)
         file.close()
         print('\n\n')
 
     def createFile(self, chapterNumber, chapter_title, chapter_content: list):
-        chapter_title = checkTitle(chapter_title)
+        chapter_title = checkFileName(chapter_title)
         print('saving %s %s' % (chapterNumber, chapter_title))
         file = open('%s/%d_%s.txt' % (self.getDir(), chapterNumber,
                                       chapter_title), 'w+', encoding='utf-8')
-        file.write(chapter_title+'\n')
+        file.write(chapter_title + '\n')
         for line in chapter_content:
             file.write(str(line))
         file.close()
@@ -75,21 +124,77 @@ class Novel:
     def getDir(self):
         return self.dir
 
+    def parseTitle(self, TocHTML):
+        pass
+
     def getTitle(self):
         return self.titre
 
     def setCode(self, code):
         self.code = code
 
+    def setUrl(self, url):
+        self.url = url
+
+    def fetchTOCPage(self):
+        """fetch the TOC page of the novel"""
+        url = self.url
+        headers = self.headers
+        print('accessing: ' + url)
+        print()
+        rep = requests.get(url, headers=headers)
+        rep.encoding = 'utf-8'
+        html = rep.text
+        self.html = html
+        return html
+
+    def parseOnlineChapterList(self, html) -> list:
+        """parse the list of chapters from the HTML of the TOC page"""
+        pass
+
+    def parseTocResume(self, html=''):
+        """ format and interpret the content of the home page of the novel """
+        pass
+
+    def processNovel(self):
+        print("novel " + self.titre)
+        print('last chapter: ' + str(self.getLastChapter()))
+
+        html = self.fetchTOCPage();
+        # get the number of chapters (solely for user feedback)
+        online_chapter_list = self.parseOnlineChapterList(html)
+
+        if (self.getLastChapter() == 0):
+            resumeContent = self.parseTocResume(html)
+            # self.save("0_TOC",resumeContent)
+        if (len(online_chapter_list) >= 1):
+
+            # get the chapters url
+            lastDL = self.getLastChapter()
+            online_chapter_list = online_chapter_list[lastDL:]
+            print("there are %d chapters to udpate" % len(online_chapter_list))
+            print(online_chapter_list)
+
+            for chapter_num in online_chapter_list:
+                chap = self.processChapter(int(chapter_num))
+                chap.createFile(self.dir + '/')
+
+            # will add new files for every revised chapters
+            self.updatePerDate(html)
+        else:
+            print("this web novel has most likely been terminated")
+
 
 class SyosetuNovel(Novel):
     def __init__(self, Novel):
         self.site = 'https://ncode.syosetu.com/'
+        self.setUrl(self.site + self.code + "/")
         self.headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
         super(SyosetuNovel, self).__init__(Novel.code, Novel.titre, Novel.keep_text_format)
 
     def updatePerDate(self, html):
+        """check every local file is the same version as online """
         from bs4 import BeautifulSoup
         from datetime import date
         import os
@@ -102,82 +207,57 @@ class SyosetuNovel(Novel):
             online_chap_list.append(tmp)
 
         dirList = os.listdir(self.getDir())
-        for offlineChap in dirList:
-            fileDir = self.getDir()+'/'+offlineChap
-            modifTime = date.fromtimestamp(os.stat(fileDir).st_mtime)
-            offChapNum = int(offlineChap[:offlineChap.find('_')])
 
-            # time to check if a chap has been modified since download
-            if (offChapNum != 0) & (len(online_chap_list)-1 >= offChapNum):
-                onlineDate = online_chap_list[offChapNum-1][1]
-                onlineDate = date.fromisoformat(onlineDate)
-                if(onlineDate > modifTime):
-                    # modif after last revision of chapter
-                    print('need update man')
-                    chap = self.processChapter(int(offChapNum))
-                    chap.createFile(self.dir+'/')
-                    print('updated chap '+str(offChapNum))
+        # check that no online chapter has been removed / aka whole story deleted
+        if (len(dirList) < len(online_chap_list)):
+            for offlineChap in dirList:
+                fileDir = self.getDir() + '/' + offlineChap
+                modifTime = date.fromtimestamp(os.stat(fileDir).st_mtime)
+                offChapNum = int(offlineChap[:offlineChap.find('_')])
+
+                # time to check if a chap has been modified since download
+                if (offChapNum != 0) & (len(online_chap_list) - 1 >= offChapNum):
+                    onlineDate = online_chap_list[offChapNum - 1][1]
+                    onlineDate = date.fromisoformat(onlineDate)
+                    if (onlineDate > modifTime):
+                        # modif after last revision of chapter
+                        print('need update man')
+                        chap = self.processChapter(int(offChapNum))
+                        chap.createFile(self.dir + '/')
+                        print('updated chap ' + str(offChapNum))
         print("fin update")
 
-    def processNovel(self):
-        print("sysosetu novel "+self.titre)
-        print('last chapter: '+str(self.getLastChapter()))
-
-        url = 'https://ncode.syosetu.com/%s/' % self.code
-        headers = self.headers
-        print('accessing: '+url)
-        print()
-        rep = requests.get(url, headers=headers)
-        rep.encoding = 'utf-8'
-        html = rep.text
-
-        # get the number of chapters (solely for user feedback)
+    def parseOnlineChapterList(self, html='') -> list:
+        if html == '':
+            html = self.html
         online_chap_list = []
         online_chapter_list = re.findall(
-            r'<a href="/'+self.code+'/'+'(.*?)'+'/">.*?</a>', html, re.S)
-        if(online_chapter_list is None or len(online_chapter_list) == 0):
+            r'<a href="/' + self.code + '/' + '(.*?)' + '/">.*?</a>', html, re.S)
+
+        if (online_chapter_list is None or len(online_chapter_list) == 0):
             print("the novel has most likely been terminated\n")
-        else:
 
-            if(self.getLastChapter() == 0):
-                self.processTocResume(html)
-            if(len(online_chapter_list) >= 1):
+        return online_chap_list
 
-                # get the chapters url
-                lastDL = self.getLastChapter()
-                online_chapter_list = online_chapter_list[lastDL:]
-                print("there are %d chapters to udpate" %
-                      len(online_chapter_list))
-                print(online_chapter_list)
-
-                for chapter_num in online_chapter_list:
-                    chap = self.processChapter(int(chapter_num))
-                    chap.createFile(self.dir+'/')
-
-                # will add new files for every revised chapters
-                self.updatePerDate(html)
-            else:
-                print("this web novel has most likely been terminated")
-
-    def processTocResume(self, html=''):
-        if(html == ''):
-            url = 'https://ncode.syosetu.com/%s/' % self.code
+    def fetchTOCPage(self):
+        if html == '':
+            url = self.url
             headers = {
-                "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
+                "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"
+            }
             rep = requests.get(url, headers=headers)
             rep.encoding = 'utf-8'
             html = rep.text
-        # print(html)
 
-        # change to exception handling
+    def parseTocResume(self, html=''):
         soup = BeautifulSoup(html, 'html.parser')
         resume = soup.find_all("div", id="novel_ex")
-        #resume=re.findall('<div id="novel_ex">'+'(.*?)'+'</div>',html,re.S)[0]
-        if(resume is None):
+        # resume=re.findall('<div id="novel_ex">'+'(.*?)'+'</div>',html,re.S)[0]
+        if (resume is None):
             print("the novel has most likely been terminated")
         else:
             # self.cleanText(resume)
-            string = 'novel title= '+self.getNovelTitle()+'\n\n'
+            string = 'novel title= ' + self.getNovelTitle() + '\n\n'
             resume.insert(0, string)
             self.createFile(0, 'TOC', resume)
 
@@ -214,7 +294,7 @@ class SyosetuNovel(Novel):
         url = 'https://ncode.syosetu.com/%s/' % self.code
         headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
-        print('accessing: '+url)
+        print('accessing: ' + url)
         print()
         rep = requests.get(url, headers=headers)
         rep.encoding = 'utf-8'
@@ -236,11 +316,11 @@ def test():
     print(x)
     name = x.titre
     print(name)
-    dir = './novel_list/'+x.code+' '+name
+    dir = './novel_list/' + x.code + ' ' + name
     print(dir)
 
-    print("dir=  "+dir)
-    #dir='./novel_list/'+code+' '+name
+    print("dir=  " + dir)
+    # dir='./novel_list/'+code+' '+name
     x.setDir(dir)
     x.setLastChapter(145)
     x.processNovel()
@@ -257,10 +337,10 @@ class KakuyomuNovel(Novel):
 
     def processNovel(self):
         from bs4 import BeautifulSoup
-        print("Kakuyomu novel "+self.titre)
-        print('last chapter: '+str(self.getLastChapter()))
+        print("Kakuyomu novel " + self.titre)
+        print('last chapter: ' + str(self.getLastChapter()))
         url = 'https://kakuyomu.jp/works/%s' % self.code
-        print('accessing '+url)
+        print('accessing ' + url)
         chapterListDiv = '/works/%s/episodes/(.*?)"' % self.code
         headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
@@ -274,14 +354,14 @@ class KakuyomuNovel(Novel):
         print(soup.find_all("a", "widget-toc-chapter"))
         print("end")
         soup = soup.find('div', "widget-toc-main")
-        regex = str(self.code)+"/episodes/"
+        regex = str(self.code) + "/episodes/"
         chapList = []
 
-        if(soup is None):
+        if (soup is None):
             print("the novel has most likely been terminated")
         else:
             chapList = soup.find_all(href=re.compile(regex))[
-                self.getLastChapter():]
+                       self.getLastChapter():]
 
             for i in range(0, len(chapList)):
                 chapList[i] = str(chapList[i].get('href'))
@@ -290,9 +370,9 @@ class KakuyomuNovel(Novel):
             print(chapList)
             print()
             for chap in chapList:  # last chapter = 0 at beginning
-                self.setLastChapter(self.getLastChapter()+1)
-                chapter_url = 'https://kakuyomu.jp'+str(chap)
-                print('chapter: '+str(self.getLastChapter())+'  '+chapter_url)
+                self.setLastChapter(self.getLastChapter() + 1)
+                chapter_url = 'https://kakuyomu.jp' + str(chap)
+                print('chapter: ' + str(self.getLastChapter()) + '  ' + chapter_url)
                 self.processChapter(chapter_url)
 
     def processChapter(self, chapter_url):
@@ -304,31 +384,30 @@ class KakuyomuNovel(Novel):
         print(chapter_title)
         soup = BeautifulSoup(html, 'html.parser')
         soup = soup.find('div', 'widget-episodeBody')
-        content=[]
+        content = []
 
         if (self.keep_text_format == False):
             content = soup.getText()
         else:
-            content=str(soup)
-        
+            content = str(soup)
+
         self.createFile(chapter_title, content, chapter_url)
 
     def createFile(self, chapter_title, chapter_content, chapter_url):
-        file_extension ='txt'
-        if(self.keep_text_format==True):
-            file_extension='md'
+        file_extension = 'txt'
+        if (self.keep_text_format == True):
+            file_extension = 'md'
             print("file extension is md")
 
-        chapter_title = checkTitle(chapter_title)
+        chapter_title = checkFileName(chapter_title)
         file = open('%s/%d_%s.%s' % (self.getDir(), self.getLastChapter(), chapter_title, file_extension)
                     , 'w+', encoding='utf-8')
-        file.write(chapter_url+'\n')
-        file.write(chapter_title+'\n')
+        file.write(chapter_url + '\n')
+        file.write(chapter_title + '\n')
         for sentence in chapter_content:
             file.write(sentence)
         file.close()
-    
-    
+
     def getNovelTitle(self):
         titlediv = '<h1 id="workTitle"><a href="/works/%s">' % self.code
         url = 'https://kakuyomu.jp/works/%s' % self.code
@@ -337,8 +416,8 @@ class KakuyomuNovel(Novel):
         rep = requests.get(url, headers=headers)
         rep.encoding = 'utf-8'
         html = rep.text
-        titlediv1 = html.find(titlediv)+len(titlediv)
-        endTitleDiv = html[titlediv1:].find('</a>')+titlediv1
+        titlediv1 = html.find(titlediv) + len(titlediv)
+        endTitleDiv = html[titlediv1:].find('</a>') + titlediv1
         return html[titlediv1:endTitleDiv]
 
 
@@ -351,21 +430,21 @@ class N18SyosetuNovel(SyosetuNovel, Novel):
 
     def processNovel(self):
         import sys
-        print("sysosetu novel "+self.titre)
-        print('last chapter: '+str(self.getLastChapter()))
+        print("sysosetu novel " + self.titre)
+        print('last chapter: ' + str(self.getLastChapter()))
 
-        url = self.site+'/%s/' % self.code
-        print('accessing: '+url)
+        url = self.site + '/%s/' % self.code
+        print('accessing: ' + url)
         print()
         html = self.connectViaMechanize(url)
 
-        if(self.getLastChapter() == 0):
+        if (self.getLastChapter() == 0):
             self.processTocResume(html)
         # get the number of chapters (solely for user feedback)
         online_chapter_list = re.findall(
-            '<a href="/'+self.code+'/'+'(.*?)'+'/">', html, re.DOTALL)
+            '<a href="/' + self.code + '/' + '(.*?)' + '/">', html, re.DOTALL)
 
-        print('<href="/'+self.code+'/'+'(.*?)'+'/">')
+        print('<href="/' + self.code + '/' + '(.*?)' + '/">')
         lastDL = self.getLastChapter()
         online_chapter_list = online_chapter_list[lastDL:]
         print("there are %d chapters to udpate" % len(online_chapter_list))
@@ -373,7 +452,7 @@ class N18SyosetuNovel(SyosetuNovel, Novel):
 
         for chapter_num in online_chapter_list:
             chap = self.processChapter(int(chapter_num))
-            chap.createFile(self.dir+'/')
+            chap.createFile(self.dir + '/')
 
     def processChapter(self, chapter_num):
         chapter = N18SyosetuChapter(self.code, chapter_num)
@@ -385,15 +464,15 @@ class N18SyosetuNovel(SyosetuNovel, Novel):
 
     def getNovelTitle(self, html=''):
         # https://novel18.syosetu.com/n8451sz/
-        url = self.site+'/%s/' % self.code
-        print('\naccessing: '+url)
+        url = self.site + '/%s/' % self.code
+        print('\naccessing: ' + url)
         # https://novel18.syosetu.com/n8451sz
         # cookies={'autologin':'1872412%3C%3E014ebbec6d4b5ba4b35b8b5853e19625f9e6bf77eb2609658c927a0a8b4989b6'}
         # cookies.update({'ASP.NET_SessionId':'to3210exzz4jerncygdnevl0'})
         # cookies.update({'ses':'qRtZF3-Wlg5ehnQXuig-X1'})
         # print(cookies['autologin'])
 
-        if(html == ''):
+        if (html == ''):
             html = self.connectViaMechanize(url)
         import sys
         writer = re.findall(r'<p class="novel_title">(.*?)</p>', html)
@@ -401,11 +480,11 @@ class N18SyosetuNovel(SyosetuNovel, Novel):
         return writer[0]
 
     def __createFile__(self, chapterNumber, chapter_title, chapter_content):
-        chapter_title = checkTitle(chapter_title)
+        chapter_title = checkFileName(chapter_title)
         print('saving %s %s' % (chapterNumber, chapter_title))
         file = open('%s/%d_%s.txt' % (self.getDir(), chapterNumber,
                                       chapter_title), 'w+', encoding='utf-8')
-        file.write(chapter_title+'\n')
+        file.write(chapter_title + '\n')
         file.write(chapter_content)
         file.close()
         print('\n\n')
@@ -435,7 +514,7 @@ class N18SyosetuNovel(SyosetuNovel, Novel):
         # print(cj)
         br.set_handle_redirect(True)
         br.set_cookiejar(cj)
-        print('accessing : '+url)
+        print('accessing : ' + url)
         br.open(url)
         resp = br.response()
         content = resp.get_data()
@@ -457,8 +536,8 @@ def getCookies():
 def getCookieKey(line):
     # will get the key of the line
     print(line)
-    key = line[line.find(':')+1:]
-    key = key[key.find('"')+1:]
+    key = line[line.find(':') + 1:]
+    key = key[key.find('"') + 1:]
     key = key[:key.find('"')]
     return key
 
@@ -473,7 +552,7 @@ def searchNextLine(file, str):
     return -1
 
 
-def checkTitle(str):
+def checkFileName(str):
     str = str.replace('?', '')
     str = str.replace('!', '')
     str = str.replace(':', '')
@@ -486,7 +565,7 @@ def checkTitle(str):
     str = str.replace('>', '')
     str = str.replace('\t', '')
     str = str.replace('\u3000', '')
-    str = str[:250-len('./novel_list/')]
+    str = str[:250 - len('./novel_list/')]
     return str
 
 
@@ -498,14 +577,14 @@ class WuxiaWorldNovel(Novel):
         code = Novel.titre.replace(' ', '-')
         code = code.lower()
         Novel.code = code
-        #novel.code = the-trash-of-count
+        # novel.code = the-trash-of-count
         super(WuxiaWorldNovel, self).__init__(Novel.code, Novel.titre)
 
     def processNovel(self):
-        print("WuxiaWorld novel "+self.titre)
-        print('last chapter: '+str(self.getLastChapter()))
-        url = self.site+self.code
-        print('accessing '+url)
+        print("WuxiaWorld novel " + self.titre)
+        print('last chapter: ' + str(self.getLastChapter()))
+        url = self.site + self.code
+        print('accessing ' + url)
 
         chapterListDiv = '/novel/%s/(.*?)"' % self.code
         # rep=requests.get(url,headers=self.headers)
@@ -518,11 +597,11 @@ class WuxiaWorldNovel(Novel):
         print(chapList)
         print()
         for chap in chapList:  # last chapter = 0 at beginning
-            self.setLastChapter(self.getLastChapter()+1)
-            chapter_url = url+'/'+chap
-            print('chapter: '+str(self.getLastChapter())+'  '+chapter_url)
+            self.setLastChapter(self.getLastChapter() + 1)
+            chapter_url = url + '/' + chap
+            print('chapter: ' + str(self.getLastChapter()) + '  ' + chapter_url)
             chapter = self.processChapter(chapter_url, self.getLastChapter())
-            chapter.createFile(self.dir+'/')
+            chapter.createFile(self.dir + '/')
 
     def processChapter(self, chapter_url, chapter_num):
         chapter = WuxiaWorldChapter(chapter_url, chapter_num)
@@ -559,7 +638,7 @@ class WuxiaWorldNovel(Novel):
         # print(cj)
         br.set_handle_redirect(True)
         br.set_cookiejar(cj)
-        print('accessing : '+url)
+        print('accessing : ' + url)
         br.open(url)
         resp = br.response()
         content = resp.get_data()

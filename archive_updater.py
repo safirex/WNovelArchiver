@@ -18,13 +18,15 @@ downloadInput='d'
 statusInput='s'
 compressInput='c'
 
+
+def dev_tests():
+    x = Novel('n6912eh', 'My Skills Are Too Strong to Be a Heroine')
+
 def check_env():
     try: 
         os.listdir('novel_list')
     except FileNotFoundError: 
         os.mkdir('novel_list')
-
-
 
 
 def parser():
@@ -74,6 +76,9 @@ def parser():
                 archiveFullUpdate(findNovel(regex),True)
             else:
                 archiveFullUpdate(findNovel(regex))
+        elif(args.mode=='t'):
+            dev_tests()
+            
 
         elif(args.mode==compressInput):
             print('compression')
