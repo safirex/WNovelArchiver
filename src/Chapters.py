@@ -1,5 +1,6 @@
 import re
-
+from pandas import array
+import requests
 
 
 
@@ -37,6 +38,21 @@ class Chapter():
     def getUrl(self):
         return self.url
 
+    def processChapter(self,headers):
+        chapter_rep = requests.get(self.getUrl(), headers=headers)
+        chapter_rep.encoding = 'utf-8'
+        chapter_html = chapter_rep.text
+        self.setTitle(self.parseTitle(chapter_html))
+        self.setContent(self.parseContent(chapter_html))
+        
+        
+    def parseTitle(self,html) -> str:
+        pass
+    
+    def parseContent(self,html):
+        pass
+    
+    
     def validateTitle(self,title):
         rstr = r"[\/\\\:\*\?\"\<\>\|]"
         new_title = re.sub(rstr, "_", title)
@@ -56,6 +72,9 @@ class Chapter():
         chapter_content = chapter_content.replace('</ruby>', '')
         return chapter_content
 
+
+    def save(self,dir):
+        pass
 
     def createFile(self,dir):
         print("titre"+self.title)

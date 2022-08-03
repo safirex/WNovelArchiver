@@ -21,7 +21,8 @@ compressInput='c'
 
 def dev_tests():
     x = Novel('n6912eh', 'My Skills Are Too Strong to Be a Heroine')
-
+    x = x.updateObject()
+    print(type(x))
 def check_env():
     try: 
         os.listdir('novel_list')

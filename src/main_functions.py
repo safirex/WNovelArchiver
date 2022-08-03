@@ -1,5 +1,7 @@
 import os
 
+from typing import List
+
 from  src.Downloaders import *
 
 def archiveUpdate(dirList=[],keep_text_format=False):
@@ -91,7 +93,7 @@ def archiveFullUpdate(dirList=[],force=False):
 
 
 
-def getInputFile() -> list[str]:
+def getInputFile() -> List[str]:
     """return code and novel name from input.txt"""
     inputfile=open('input.txt','r+', encoding='utf-8')
     line=inputfile.readline()

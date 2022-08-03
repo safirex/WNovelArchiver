@@ -1,6 +1,5 @@
 # coding: utf-8
 from abc import ABC
-from gc import callbacks
 import requests
 import re
 from bs4 import BeautifulSoup
@@ -8,43 +7,36 @@ from bs4 import BeautifulSoup
 from src.Chapters import *
 
 # packages for callbacks
-import callback
 from inspect import signature
 from enum import Enum, auto
 
+class Callbacks(Enum):
+    chapterListFetched = auto(),
+    ChapterBeginUpdate = auto(),
+    NovelBeginUpdate = auto(),
 
 class NovelCallbacks():
-    # TODO: replace current callback list to 2DList {'enum',[funcs]}
-    class callbacks(Enum):
-        chapterListFetched = auto(),
-        ChapterBeginUpdate = auto(),
-        NovelBeginUpdate = auto(),
+    """gives to subclass a"""
+    def __init__(self, enum: Enum = Callbacks):
+        self.enum = enum
+        self.callbacks_dict = dict()
+        self.init_callback_list()
 
-    def __init__(self):
-        self.callbacks_chapterListFetched = []
-        self.callbacks_ChapterBeginUpdate = []
-        self.callbacks_NovelBeginUpdate = []
+    def init_callback_list(self):
+        for enum in self.enum:
+            self.callbacks_dict[enum] = []
 
-    def registerCallback(self, callback_List, callback):
-        callback_List.append(callback)
+    def registerCallback(self, hook: Enum, callback):
+        self.callbacks_dict.get(hook).append(callback)
 
-    def exec_callbacks(self, callback_list, args=None):
-        for method in callback_list:
+    def exec_callbacks(self,hook: Enum ,args=None):
+        for method in self.callbacks_dict[hook]:
             sig = signature(method)
             params = sig.parameters
             if (len(params) <= 1):
                 method()
             else:
                 method(args)
-
-    def onChapterListFetched(self, args=None):
-        self.exec_callbacks(self.callbacks_chapterListFetched, args)
-
-    def onChapterBeginUpdate(self, args=None):
-        self.exec_callbacks(self.callbacks_ChapterBeginUpdate, args)
-
-    def onBeginNovelUpdate(self, args=None):
-        self.exec_callbacks(self.callbacks_NovelBeginUpdate, args)
 
 
 class Novel(NovelCallbacks):
@@ -53,8 +45,17 @@ class Novel(NovelCallbacks):
         self.code = codeNovel
         self.titre = titreNovel
         self.keep_text_format = keep_text_format
-
-    def tempFunc(self, args):
+        self.init_callbacks()
+        # should be used to return a 
+        if(type(self)==Novel):
+            self.updateObject()
+        
+    
+    def init_callbacks(self):
+        """create a Novel basic callback"""
+        self.registerCallback(Callbacks.ChapterBeginUpdate,self.tempFunc)
+        
+    def tempFunc(self):
         print("callback works")
 
     def downloadNovel(self, chapter) -> str:
@@ -187,11 +188,11 @@ class Novel(NovelCallbacks):
 
 class SyosetuNovel(Novel):
     def __init__(self, Novel):
+        super(SyosetuNovel, self).__init__(Novel.code, Novel.titre, Novel.keep_text_format)
         self.site = 'https://ncode.syosetu.com/'
         self.setUrl(self.site + self.code + "/")
         self.headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
-        super(SyosetuNovel, self).__init__(Novel.code, Novel.titre, Novel.keep_text_format)
 
     def updatePerDate(self, html):
         """check every local file is the same version as online """
@@ -240,14 +241,15 @@ class SyosetuNovel(Novel):
         return online_chap_list
 
     def fetchTOCPage(self):
-        if html == '':
-            url = self.url
-            headers = {
-                "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"
-            }
-            rep = requests.get(url, headers=headers)
-            rep.encoding = 'utf-8'
-            html = rep.text
+        url = self.url
+        headers = {
+            "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"
+        }
+        rep = requests.get(url, headers=headers)
+        rep.encoding = 'utf-8'
+        html = rep.text
+        self.html = html
+        return html
 
     def parseTocResume(self, html=''):
         soup = BeautifulSoup(html, 'html.parser')
@@ -263,11 +265,7 @@ class SyosetuNovel(Novel):
 
     def processChapter(self, chapter_num):
         chapter = SyosetuChapter(self.code, chapter_num)
-        chapter_rep = requests.get(chapter.getUrl(), headers=self.headers)
-        chapter_rep.encoding = 'utf-8'
-        chapter_html = chapter_rep.text
-        chapter.getTitle(chapter_html)
-        chapter.getContent(chapter_html)
+        chapter.processChapter(self.headers)
         return chapter
         # self.createFile(i,chapter_title,chapter_content)
         # self.setLastChapter(i)
