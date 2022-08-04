@@ -23,6 +23,8 @@ def dev_tests():
     x = Novel('n6912eh', 'My Skills Are Too Strong to Be a Heroine')
     x = x.updateObject()
     print(type(x))
+    x.setLastChapter(0)
+    x.processNovel()
 def check_env():
     try: 
         os.listdir('novel_list')

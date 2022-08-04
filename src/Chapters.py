@@ -1,6 +1,7 @@
 import re
 from pandas import array
 import requests
+from bs4 import BeautifulSoup
 
 
 
@@ -23,7 +24,7 @@ class Chapter():
     def __init__(self,num,url=''):
         self.num=num
         self.content=[]
-        self.title=''
+        self.title=""
         self.url=url
 
     def setContent(self,content):
@@ -99,16 +100,13 @@ class SyosetuChapter(Chapter):
     def setUrl(self):
         self.url='https://ncode.syosetu.com/%s/%s/'%(self.novelNum,self.num)
 
-    def getTitle(self,html):
-        title=re.findall('<p class="novel_subtitle">(.*?)</p>',html)[0]
-        replacething=re.findall('_u3000',title)
-        for y in replacething:
-            chapter_title=chapter_title.replace(y,' ')
-        title=self.validateTitle(title)
-        self.setTitle(title)
+    def parseTitle(self, html) -> str:
+        soup = BeautifulSoup(html, 'html.parser')
+        title = soup.find("p","novel_subtitle").text
+        print(title)
         return title
-
-    def getContent(self,html):
+    
+    def parseContent(self,html):
         chapter_content=re.findall(r'<div id="novel_honbun" class="novel_view">(.*?)</div>',html,re.S)[0]
         replacething=re.findall(r'<p id=' + '.*?' + '>', chapter_content)
         for y in replacething:

@@ -1,5 +1,5 @@
 # coding: utf-8
-from abc import ABC
+from abc import ABC, abstractmethod
 import requests
 import re
 from bs4 import BeautifulSoup
@@ -21,7 +21,7 @@ class Callbacks(Enum):
     NovelNotFound = auto(),
     
 
-class SystemCallbacks():
+class SystemCallbacks(ABC):
     """gives to subclass a callback interface"""
     def __init__(self, enum: Enum = Callbacks):
         self.enum = enum
@@ -68,26 +68,31 @@ class NovelCallbacks(SystemCallbacks):
         print("chapter list obtained")
     
 
+
 class Novel(NovelCallbacks):
     def __init__(self, codeNovel, titreNovel, keep_text_format=False):
         super(Novel, self).__init__()
         self.code = codeNovel
         self.titre = titreNovel
         self.keep_text_format = keep_text_format
+        
         # should be used to return a 
         if(type(self)==Novel):
             self.updateObject()
+        if(type(self)!=Novel):
+            self.setUrl()
+            self.setDir('./novel_list/'+self.code+' '+self.titre)
         
     def downloadNovel(self, chapter) -> str:
-        """download chapter from site."""
+        """ download chapter from site. """
         pass
 
     def processNovel(self) -> str:
-        """will process the html and download the chapter"""
+        """ will process the html and download the chapter """
         pass
 
-    def getNovelTitle(self) -> str:
-        """fetch the novel title from the TOC page"""
+    def getNovelTitle(self,html="") -> str:
+        """ get the novel title from the TOC html page """
         pass
 
     def updateObject(self):
@@ -133,6 +138,7 @@ class Novel(NovelCallbacks):
         file.close()
         print('\n\n')
 
+    
     def setLastChapter(self, chap):
         self.chap = chap
 
@@ -154,9 +160,11 @@ class Novel(NovelCallbacks):
     def setCode(self, code):
         self.code = code
 
-    def setUrl(self, url):
-        self.url = url
-
+    def setUrl(self):
+        """method meant to be implemented by subclasses, determine the url to said novel"""
+        pass
+    
+    
     def fetchTOCPage(self):
         """fetch the TOC page of the novel"""
         url = self.url
@@ -208,12 +216,14 @@ class Novel(NovelCallbacks):
 
 class SyosetuNovel(Novel):
     def __init__(self, Novel):
-        super(SyosetuNovel, self).__init__(Novel.code, Novel.titre, Novel.keep_text_format)
         self.site = 'https://ncode.syosetu.com/'
-        self.setUrl(self.site + self.code + "/")
         self.headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
-
+        super(SyosetuNovel, self).__init__(Novel.code, Novel.titre, Novel.keep_text_format)
+    
+    def setUrl(self):
+        self.url = self.site + self.code + "/"
+    
     def updatePerDate(self, html):
         """check every local file is the same version as online """
         from bs4 import BeautifulSoup
@@ -249,16 +259,29 @@ class SyosetuNovel(Novel):
         print("fin update")
 
     def parseOnlineChapterList(self, html='') -> list:
+        # if html == '':
+        #     html = self.html
+        # online_chap_list = []
+        # online_chapter_list = re.findall(
+        #     r'<a href="/' + self.code + '/' + '(.*?)' + '/">.*?</a>', html, re.S)
+        # if (online_chapter_list is None or len(online_chapter_list) == 0):
+        #     print("the novel has most likely been terminated\n")
+
         if html == '':
             html = self.html
-        online_chap_list = []
         online_chapter_list = re.findall(
             r'<a href="/' + self.code + '/' + '(.*?)' + '/">.*?</a>', html, re.S)
-
         if (online_chapter_list is None or len(online_chapter_list) == 0):
             print("the novel has most likely been terminated\n")
 
-        return online_chap_list
+
+        # soup = BeautifulSoup(html, 'html.parser')
+        # online_chap_list = []
+        # divs = soup.find_all("dl","novel_sublist2")
+        # for div in divs:
+        #     online_chap_list.append( div.find("a"))
+        # print(online_chap_list)
+        return online_chapter_list
 
     def fetchTOCPage(self):
         url = self.url
@@ -271,7 +294,7 @@ class SyosetuNovel(Novel):
         self.html = html
         return html
 
-    def parseTocResume(self, html=''):
+    def parseTocResume(self, html):
         soup = BeautifulSoup(html, 'html.parser')
         resume = soup.find_all("div", id="novel_ex")
         # resume=re.findall('<div id="novel_ex">'+'(.*?)'+'</div>',html,re.S)[0]
@@ -279,7 +302,7 @@ class SyosetuNovel(Novel):
             print("the novel has most likely been terminated")
         else:
             # self.cleanText(resume)
-            string = 'novel title= ' + self.getNovelTitle() + '\n\n'
+            string = 'novel title= ' + self.getNovelTitle(html) + '\n\n'
             resume.insert(0, string)
             self.createFile(0, 'TOC', resume)
 
@@ -308,16 +331,17 @@ class SyosetuNovel(Novel):
         new_title = re.sub(rstr, "_", title)
         return new_title
 
-    def getNovelTitle(self):
-        url = 'https://ncode.syosetu.com/%s/' % self.code
-        headers = {
-            "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
-        print('accessing: ' + url)
-        print()
-        rep = requests.get(url, headers=headers)
-        rep.encoding = 'utf-8'
-        html = rep.text
-
+    def getNovelTitle(self,html):
+        # url = 'https://ncode.syosetu.com/%s/' % self.code
+        # headers = {
+        #     "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
+        # print('accessing: ' + url)
+        # print()
+        # rep = requests.get(url, headers=headers)
+        # rep.encoding = 'utf-8'
+        # html = rep.text
+        # self.url = url
+        # html = self.fetchTOCPage()
         writer = re.findall(r'<p class="novel_title">(.*?)</p>', html, re.S)
         print('title = ')
         print(writer)
