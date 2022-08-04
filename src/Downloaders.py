@@ -11,12 +11,18 @@ from inspect import signature
 from enum import Enum, auto
 
 class Callbacks(Enum):
-    chapterListFetched = auto(),
+    ChapterListFetched = auto(),
     ChapterBeginUpdate = auto(),
+    ChapterBeginFetch = auto(),
+    ChapterEndFetch = auto(),
     NovelBeginUpdate = auto(),
+    NovelBeginTOCFetch = auto(),
+    NovelEndTOCFetch = auto(),
+    NovelNotFound = auto(),
+    
 
-class NovelCallbacks():
-    """gives to subclass a"""
+class SystemCallbacks():
+    """gives to subclass a callback interface"""
     def __init__(self, enum: Enum = Callbacks):
         self.enum = enum
         self.callbacks_dict = dict()
@@ -27,7 +33,11 @@ class NovelCallbacks():
             self.callbacks_dict[enum] = []
 
     def registerCallback(self, hook: Enum, callback):
+        """add a the callback to the method called on hook call"""
         self.callbacks_dict.get(hook).append(callback)
+        
+    def removeCallback(self, hook: Enum, callback):
+        self.callbacks_dict.get(hook).remove(callback)
 
     def exec_callbacks(self,hook: Enum ,args=None):
         for method in self.callbacks_dict[hook]:
@@ -39,25 +49,35 @@ class NovelCallbacks():
                 method(args)
 
 
+class NovelCallbacks(SystemCallbacks):
+    """middle-man between callback implementation and novel class for more visibility"""
+    def __init__(self):
+        super().__init__()
+        self.init_callbacks()
+        
+        
+    def init_callbacks(self):
+        """create a Novel basic callback"""
+        self.registerCallback(Callbacks.ChapterBeginUpdate,self.tempFunc)
+        self.registerCallback(Callbacks.ChapterListFetched,self.onChapterListFetched)
+        
+    def tempFunc(self):
+        print("callback works")
+        
+    def onChapterListFetched(self):
+        print("chapter list obtained")
+    
+
 class Novel(NovelCallbacks):
     def __init__(self, codeNovel, titreNovel, keep_text_format=False):
         super(Novel, self).__init__()
         self.code = codeNovel
         self.titre = titreNovel
         self.keep_text_format = keep_text_format
-        self.init_callbacks()
         # should be used to return a 
         if(type(self)==Novel):
             self.updateObject()
         
-    
-    def init_callbacks(self):
-        """create a Novel basic callback"""
-        self.registerCallback(Callbacks.ChapterBeginUpdate,self.tempFunc)
-        
-    def tempFunc(self):
-        print("callback works")
-
     def downloadNovel(self, chapter) -> str:
         """download chapter from site."""
         pass
