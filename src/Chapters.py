@@ -26,6 +26,7 @@ class Chapter():
         self.content=[]
         self.title=""
         self.url=url
+        self.setUrl()
 
     def setContent(self,content):
         self.content=content
@@ -48,6 +49,7 @@ class Chapter():
         
         
     def parseTitle(self,html) -> str:
+        print("still in novel")
         pass
     
     def parseContent(self,html):
@@ -78,19 +80,41 @@ class Chapter():
         pass
 
     def createFile(self,dir):
-        print("titre"+self.title)
-        print(self.num)
         chapter_title=checkFileName(self.title)
         print("titre"+chapter_title)
         print('saving '+str(self.num)+' '+chapter_title)
-        file = open('%s/%d_%s.txt'%(dir,self.num,chapter_title), 'w+', encoding='utf-8')
+        file = open('%s/%s_%s.txt'%(dir,self.num,chapter_title), 'w+', encoding='utf-8')
         file.write(chapter_title+'\n')
         file.write(self.content)
         file.close()
         print('\n\n')
 
 
-
+class KakyomuChapter(Chapter):
+    def __init__(self,num,url):
+        super().__init__(num,url)
+        
+    def setUrl(self) -> str:
+        # self.url = 'https://kakuyomu.jp/works/%s/episodes/%s'%(self.novelNum,self.num)
+        print("url = "+str(self.url))
+        pass
+    
+    def parseTitle(self, html) -> str:
+        print("parsing title")
+        chapter_title = re.findall(
+            '<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<', html)[0]
+        return chapter_title
+    
+    def parseContent(self, html,keep_text_format=False):
+        soup = BeautifulSoup(html, 'html.parser')
+        soup = soup.find('div', 'widget-episodeBody')
+        content = []
+        if (keep_text_format == False):
+            content = soup.getText()
+        else:
+            content = str(soup)
+        return content
+    
 class SyosetuChapter(Chapter):
     def __init__(self,novelNum,num):
         self.novelNum=novelNum
@@ -103,7 +127,6 @@ class SyosetuChapter(Chapter):
     def parseTitle(self, html) -> str:
         soup = BeautifulSoup(html, 'html.parser')
         title = soup.find("p","novel_subtitle").text
-        print(title)
         return title
     
     def parseContent(self,html):

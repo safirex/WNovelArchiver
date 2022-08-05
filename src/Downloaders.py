@@ -75,6 +75,7 @@ class Novel(NovelCallbacks):
         self.code = codeNovel
         self.titre = titreNovel
         self.keep_text_format = keep_text_format
+        self.headers = ''
         
         # should be used to return a 
         if(type(self)==Novel):
@@ -151,7 +152,7 @@ class Novel(NovelCallbacks):
     def getDir(self):
         return self.dir
 
-    def parseTitle(self, TocHTML):
+    def parseTitle(self, TocHTML) ->str:
         pass
 
     def getTitle(self):
@@ -203,16 +204,23 @@ class Novel(NovelCallbacks):
             online_chapter_list = online_chapter_list[lastDL:]
             print("there are %d chapters to udpate" % len(online_chapter_list))
             print(online_chapter_list)
-
-            for chapter_num in online_chapter_list:
-                chap = self.processChapter(int(chapter_num))
-                chap.createFile(self.dir + '/')
-
+            self.processChapter(online_chapter_list)
             # will add new files for every revised chapters
             self.updatePerDate(html)
         else:
             print("this web novel has most likely been terminated")
-
+            
+    def processChapter(self, chapList):
+        """ download every chapter of the list """
+        for chapter_num in chapList:
+                print(chapter_num)
+                chap = self.getChapter(chapter_num)
+                print(chap)
+                chap.createFile(self.dir + '/')
+        pass
+    def getChapter(self,chapter_num) ->Chapter:
+        """return the subclass chapter type"""
+        pass
 
 class SyosetuNovel(Novel):
     def __init__(self, Novel):
@@ -271,10 +279,10 @@ class SyosetuNovel(Novel):
             html = self.html
         online_chapter_list = re.findall(
             r'<a href="/' + self.code + '/' + '(.*?)' + '/">.*?</a>', html, re.S)
+            
         if (online_chapter_list is None or len(online_chapter_list) == 0):
             print("the novel has most likely been terminated\n")
-
-
+        
         # soup = BeautifulSoup(html, 'html.parser')
         # online_chap_list = []
         # divs = soup.find_all("dl","novel_sublist2")
@@ -306,7 +314,7 @@ class SyosetuNovel(Novel):
             resume.insert(0, string)
             self.createFile(0, 'TOC', resume)
 
-    def processChapter(self, chapter_num):
+    def getChapter(self, chapter_num):
         chapter = SyosetuChapter(self.code, chapter_num)
         chapter.processChapter(self.headers)
         return chapter
@@ -372,54 +380,66 @@ class KakuyomuNovel(Novel):
     def __init__(self, Novel):
         super().__init__(Novel.code, Novel.titre, Novel.keep_text_format)
 
-    def getChapterTitle(self, str):
+    def setUrl(self):
+        self.url = 'https://kakuyomu.jp/works/%s' % self.code
+
+    def parseTitle(self, TocHTML):
         chapter_title = re.findall(
-            '<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<', str)[0]
+            '<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<', TocHTML)[0]
         return chapter_title
 
-    def processNovel(self):
-        from bs4 import BeautifulSoup
-        print("Kakuyomu novel " + self.titre)
-        print('last chapter: ' + str(self.getLastChapter()))
-        url = 'https://kakuyomu.jp/works/%s' % self.code
-        print('accessing ' + url)
-        chapterListDiv = '/works/%s/episodes/(.*?)"' % self.code
-        headers = {
-            "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
-        rep = requests.get(url, headers=headers)
-        rep.encoding = 'utf-8'
-        html = rep.text
-
-        # test
+    def parseOnlineChapterList(self, html) -> list:
         soup = BeautifulSoup(html, 'html.parser')
         online_chap_list = []
         print(soup.find_all("a", "widget-toc-chapter"))
         print("end")
         soup = soup.find('div', "widget-toc-main")
         regex = str(self.code) + "/episodes/"
+        # regex = '/episodes/">(?P<num>.*?)</a>'
         chapList = []
-
-        if (soup is None):
-            print("the novel has most likely been terminated")
-        else:
+        if (soup is not None):
             chapList = soup.find_all(href=re.compile(regex))[
                        self.getLastChapter():]
 
             for i in range(0, len(chapList)):
-                chapList[i] = str(chapList[i].get('href'))
-            print()
-            print("there are %d chapters to udpate" % len(chapList))
-            print(chapList)
-            print()
-            for chap in chapList:  # last chapter = 0 at beginning
-                self.setLastChapter(self.getLastChapter() + 1)
-                chapter_url = 'https://kakuyomu.jp' + str(chap)
-                print('chapter: ' + str(self.getLastChapter()) + '  ' + chapter_url)
-                self.processChapter(chapter_url)
+                chapList[i] ='https://kakuyomu.jp' +  str(chapList[i].get('href'))
+        self.onlineChapterList  = chapList
+        return chapList
 
-    def processChapter(self, chapter_url):
+    def getChapterTitle(self, str): 
+        chapter_title = re.findall(
+            '<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<', str)[0]
+        return chapter_title
+    
+    def getChapter(self,chapter_num) ->Chapter:
+        chap =KakyomuChapter(self.onlineChapterList.index(chapter_num),chapter_num)
+        chap.processChapter(self.headers)
+        return chap
+
+    def process1Novel(self):
+        print("Kakuyomu novel " + self.titre)
+        print('last chapter: ' + str(self.getLastChapter()))
+        
+        chapterListDiv = '/works/%s/episodes/(.*?)"' % self.code
+        self.headers = {
+            "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
+        html = self.fetchTOCPage()
+
+        # test
+        chapList = self.parseOnlineChapterList(html)
+        print()
+        print("there are %d chapters to udpate" % len(chapList))
+        print(chapList)
+        print()
+        for chap in chapList:  # last chapter = 0 at beginning
+            self.setLastChapter(self.getLastChapter() + 1)
+            chapter_url = 'https://kakuyomu.jp' + str(chap)
+            print('chapter: ' + str(self.getLastChapter()) + '  ' + chapter_url)
+            self.processChapter(chapter_url)
+
+    def process1Chapter(self, chapter_url):
         from bs4 import BeautifulSoup
-
+        print(chapter_url)
         rep = requests.get(chapter_url)  # ,headers=headers)
         html = rep.text
         chapter_title = self.getChapterTitle(html)
