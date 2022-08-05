@@ -103,6 +103,7 @@ class KakyomuChapter(Chapter):
         print("parsing title")
         chapter_title = re.findall(
             '<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<', html)[0]
+        print("title found = "+str(chapter_title))
         return chapter_title
     
     def parseContent(self, html,keep_text_format=False):

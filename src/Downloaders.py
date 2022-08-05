@@ -402,6 +402,7 @@ class KakuyomuNovel(Novel):
                        self.getLastChapter():]
 
             for i in range(0, len(chapList)):
+                # list should contain links and not number because can't be found from relative way
                 chapList[i] ='https://kakuyomu.jp' +  str(chapList[i].get('href'))
         self.onlineChapterList  = chapList
         return chapList
@@ -412,75 +413,11 @@ class KakuyomuNovel(Novel):
         return chapter_title
     
     def getChapter(self,chapter_num) ->Chapter:
+        # workaround because of absolute kakyomu's absolute links
         chap =KakyomuChapter(self.onlineChapterList.index(chapter_num),chapter_num)
         chap.processChapter(self.headers)
         return chap
 
-    def process1Novel(self):
-        print("Kakuyomu novel " + self.titre)
-        print('last chapter: ' + str(self.getLastChapter()))
-        
-        chapterListDiv = '/works/%s/episodes/(.*?)"' % self.code
-        self.headers = {
-            "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
-        html = self.fetchTOCPage()
-
-        # test
-        chapList = self.parseOnlineChapterList(html)
-        print()
-        print("there are %d chapters to udpate" % len(chapList))
-        print(chapList)
-        print()
-        for chap in chapList:  # last chapter = 0 at beginning
-            self.setLastChapter(self.getLastChapter() + 1)
-            chapter_url = 'https://kakuyomu.jp' + str(chap)
-            print('chapter: ' + str(self.getLastChapter()) + '  ' + chapter_url)
-            self.processChapter(chapter_url)
-
-    def process1Chapter(self, chapter_url):
-        from bs4 import BeautifulSoup
-        print(chapter_url)
-        rep = requests.get(chapter_url)  # ,headers=headers)
-        html = rep.text
-        chapter_title = self.getChapterTitle(html)
-        print(chapter_title)
-        soup = BeautifulSoup(html, 'html.parser')
-        soup = soup.find('div', 'widget-episodeBody')
-        content = []
-
-        if (self.keep_text_format == False):
-            content = soup.getText()
-        else:
-            content = str(soup)
-
-        self.createFile(chapter_title, content, chapter_url)
-
-    def createFile(self, chapter_title, chapter_content, chapter_url):
-        file_extension = 'txt'
-        if (self.keep_text_format == True):
-            file_extension = 'md'
-            print("file extension is md")
-
-        chapter_title = checkFileName(chapter_title)
-        file = open('%s/%d_%s.%s' % (self.getDir(), self.getLastChapter(), chapter_title, file_extension)
-                    , 'w+', encoding='utf-8')
-        file.write(chapter_url + '\n')
-        file.write(chapter_title + '\n')
-        for sentence in chapter_content:
-            file.write(sentence)
-        file.close()
-
-    def getNovelTitle(self):
-        titlediv = '<h1 id="workTitle"><a href="/works/%s">' % self.code
-        url = 'https://kakuyomu.jp/works/%s' % self.code
-        headers = {
-            "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
-        rep = requests.get(url, headers=headers)
-        rep.encoding = 'utf-8'
-        html = rep.text
-        titlediv1 = html.find(titlediv) + len(titlediv)
-        endTitleDiv = html[titlediv1:].find('</a>') + titlediv1
-        return html[titlediv1:endTitleDiv]
 
 
 class N18SyosetuNovel(SyosetuNovel, Novel):
