@@ -35,6 +35,7 @@ def archiveUpdate(dirList=[],keep_text_format=False):
 
         #let's update the archive
         novel.setDir('./novel_list/'+novel_folder)
+        print(type(novel))
         novel.processNovel()
 
 

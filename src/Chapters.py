@@ -49,10 +49,11 @@ class Chapter():
         
         
     def parseTitle(self,html) -> str:
-        print("still in novel")
+        """returns the title of the page"""
         pass
     
     def parseContent(self,html):
+        """returns the content of the page"""
         pass
     
     
@@ -88,6 +89,7 @@ class Chapter():
         file.write(self.content)
         file.close()
         print('\n\n')
+        
 
 
 class KakyomuChapter(Chapter):
