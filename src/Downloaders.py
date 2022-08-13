@@ -444,8 +444,8 @@ class N18SyosetuNovel(Novel):
         chapter = N18SyosetuChapter(self.code, chapter_num)
         chapter_html = self.connectViaMechanize(
             '%s/%s/%s/' % (self.site, self.code, chapter_num))
-        chapter.getTitle(chapter_html)
-        chapter.getContent(chapter_html)
+        chapter.setTitle(chapter.parseTitle(chapter_html))
+        chapter.setContent(chapter.parseContent(chapter_html))
         return chapter
 
     def getNovelTitle(self, html=''):

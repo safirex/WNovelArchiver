@@ -149,7 +149,7 @@ class N18SyosetuChapter(SyosetuChapter,Chapter):
     def setUrl(self):
         self.url='https://novel18.syosetu.com/%s/%s/'%(self.novelNum,self.num)
 
-    def getContent(self,html):
+    def parseContent(self,html):
         chapter_content=re.findall(r'<div class="novel_view" id="novel_honbun">(.*?)</div>',html,re.S)[0]
         replacething=re.findall(r'<p id=' + '.*?' + '>', chapter_content)
         for y in replacething:
@@ -157,6 +157,12 @@ class N18SyosetuChapter(SyosetuChapter,Chapter):
         chapter_content=self.cleanText(chapter_content)
         self.setContent(chapter_content)
         return chapter_content
+
+        
+    def parseTitle(self, html) -> str:
+        soup = BeautifulSoup(html, 'html.parser')
+        title = soup.find("p","novel_subtitle").text
+        return title
 
     def createFile(self,dir):
         chapter_title=checkFileName(self.title)
