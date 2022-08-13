@@ -1,5 +1,6 @@
 # coding: utf-8
 from abc import ABC, abstractmethod
+from urllib.error import HTTPError
 import requests
 import re
 from bs4 import BeautifulSoup
@@ -174,6 +175,7 @@ class Novel(NovelCallbacks):
         print()
         rep = requests.get(url, headers=headers)
         rep.encoding = 'utf-8'
+        rep.raise_for_status()
         html = rep.text
         self.html = html
         return html
@@ -189,8 +191,11 @@ class Novel(NovelCallbacks):
     def processNovel(self):
         print("novel " + self.titre)
         print('last chapter: ' + str(self.getLastChapter()))
-
-        html = self.fetchTOCPage();
+        try:
+            html = self.fetchTOCPage();
+        except  requests.HTTPError :
+            print("can't acces the novel TOC page")
+            return ''
         # get the number of chapters (solely for user feedback)
         online_chapter_list = self.parseOnlineChapterList(html)
         if (self.getLastChapter() == 0):
@@ -624,3 +629,32 @@ class WuxiaWorldNovel(Novel):
         content = resp.get_data()
         soup = BeautifulSoup(content, 'html.parser')
         return str(soup)
+
+class NovelPia(Novel):
+    def __init__(self, novel):
+        super().__init__(novel.code, novel.titre, novel.keep_text_format)
+
+    def setUrl(self):
+        self.url = 'https://novelpia.com/novel//%s'%self.code
+
+    def fetchTOCPage(self):
+        from requests_html import HTMLSession
+        session = HTMLSession()
+        r = session.get(self.url)
+        r.html.render()
+        print(r.html.text)
+        # print(r.html.find('div'))
+
+        # list = r.html.find('#episode_list').text
+        # print(list)
+
+
+    def parseOnlineChapterList(self, html) -> list:
+        # print(html)
+        return super().parseOnlineChapterList(html)
+    def parseTitle(self, TocHTML) -> str:
+        return super().parseTitle(TocHTML)
+    def parseTocResume(self, html=''):
+        return super().parseTocResume(html)
+    
+    

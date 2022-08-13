@@ -21,8 +21,9 @@ compressInput='c'
 
 def dev_tests():
     # x = Novel('n6912eh', 'My Skills Are Too Strong to Be a Heroine')
-    x = Novel("1177354054882979595", "She Is a Quiet Girl, But a Noisy Telepath")
-    x = x.updateObject()
+    # x = Novel("1177354054882979595", "She Is a Quiet Girl, But a Noisy Telepath")
+    x = NovelPia(Novel('49942',"Omniscient First Person View "))
+    # x = x.updateObject()
     print(type(x))
     x.setLastChapter(0)
     x.processNovel()
