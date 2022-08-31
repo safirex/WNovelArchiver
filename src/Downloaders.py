@@ -95,6 +95,9 @@ class Novel(NovelCallbacks):
 
     def getNovelTitle(self,html="") -> str:
         """ get the novel title from the TOC html page """
+        html = self.fetchTOCPage()
+        title = self.parseTitle(html)
+        return title
         pass
 
     def updateObject(self):
@@ -326,11 +329,12 @@ class SyosetuNovel(Novel):
         rstr = r"[\/\\\:\*\?\"\<\>\|]"
         new_title = re.sub(rstr, "_", title)
         return new_title
-
-    def getNovelTitle(self,html):
-        writer = re.findall(r'<p class="novel_title">(.*?)</p>', html, re.S)
+    def parseTitle(self, TocHTML) -> str:
+        writer = re.findall(r'<p class="novel_title">(.*?)</p>', TocHTML, re.S)
         print('title = '+str(writer))
         return writer[0]
+
+        
 
 
 def test():
@@ -439,6 +443,18 @@ class N18SyosetuNovel(Novel):
         for chapter_num in online_chapter_list:
             chap = self.processChapter(int(chapter_num))
             chap.createFile(self.dir + '/')
+
+    def processTocResume(self, html):
+        soup = BeautifulSoup(html, 'html.parser')
+        resume = soup.find("div", id="novel_ex")
+        # resume=re.findall('<div id="novel_ex">'+'(.*?)'+'</div>',html,re.S)[0]
+        if (resume is None):
+            print("the novel has most likely been terminated")
+        else:
+            # self.cleanText(resume)
+            string = 'novel title= ' + self.getNovelTitle(html) + '\n\n'
+            resume.insert(0, string)
+            self.createFile(0, 'TOC', resume)
 
     def processChapter(self, chapter_num):
         chapter = N18SyosetuChapter(self.code, chapter_num)

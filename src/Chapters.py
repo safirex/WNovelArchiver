@@ -1,5 +1,4 @@
 import re
-from pandas import array
 import requests
 from bs4 import BeautifulSoup
 
