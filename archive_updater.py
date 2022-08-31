@@ -22,11 +22,52 @@ compressInput='c'
 def dev_tests():
     # x = Novel('n6912eh', 'My Skills Are Too Strong to Be a Heroine')
     # x = Novel("1177354054882979595", "She Is a Quiet Girl, But a Noisy Telepath")
-    x = NovelPia(Novel('49942',"Omniscient First Person View "))
-    # x = x.updateObject()
-    print(type(x))
-    x.setLastChapter(0)
-    x.processNovel()
+    # x = NovelPia(Novel('49942',"Omniscient First Person View "))
+    # # x = x.updateObject()
+    # print(type(x))
+    # x.setLastChapter(0)
+    # x.processNovel()
+
+    # test_novelpia()
+    test_novelpia2()
+
+def test_novelpia2():
+    from selenium import webdriver
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.firefox.options import Options
+    from bs4 import BeautifulSoup
+
+    gecko = os.path.normpath(os.path.join(os.path.dirname(__file__)+"/libs", 'geckodriver'))
+    # binary = FirefoxBinary(r'C:\Program Files (x86)\Mozilla Firefox\firefox.exe')
+    # driver = webdriver.Firefox(firefox_binary=binary, executable_path=gecko+'.exe')
+    Options = Options()
+    Options.headless = True
+    driver = webdriver.Firefox( options=Options,executable_path=gecko+'.exe')
+    driver.get("https://novelpia.com/viewer/351337")
+
+    
+
+def test_novelpia():
+    from selenium import webdriver
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.firefox.options import Options
+    from bs4 import BeautifulSoup
+
+    gecko = os.path.normpath(os.path.join(os.path.dirname(__file__)+"/libs", 'geckodriver'))
+    # binary = FirefoxBinary(r'C:\Program Files (x86)\Mozilla Firefox\firefox.exe')
+    # driver = webdriver.Firefox(firefox_binary=binary, executable_path=gecko+'.exe')
+    Options = Options()
+    Options.headless = True
+    driver = webdriver.Firefox( options=Options,executable_path=gecko+'.exe')
+    driver.get("https://novelpia.com/novel/29912")
+    # driver.execute_script('document.title')
+    # print(driver)
+    elem = driver.find_element(By.ID, "episode_list")
+    # print(elem.get_attribute("innerHTML"))
+    soup = BeautifulSoup(elem.get_attribute("innerHTML"), 'html.parser')
+    print(soup)
+
+    driver.close()
 def check_env():
     try: 
         os.listdir('novel_list')
@@ -71,8 +112,7 @@ def parser():
             
         elif(args.mode==updateInput):
             archiveUpdate(findNovel(regex),keep_text_format)
-
-
+            
         elif(args.mode==statusInput):
             getFolderStatus()
 
