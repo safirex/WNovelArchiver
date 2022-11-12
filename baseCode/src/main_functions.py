@@ -1,7 +1,5 @@
 import os
 
-from typing import List
-
 from  src.Downloaders import *
 
 def archiveUpdate(dirList=[],keep_text_format=False):
@@ -35,7 +33,6 @@ def archiveUpdate(dirList=[],keep_text_format=False):
 
         #let's update the archive
         novel.setDir('./novel_list/'+novel_folder)
-        print(type(novel))
         novel.processNovel()
 
 
@@ -93,9 +90,8 @@ def archiveFullUpdate(dirList=[],force=False):
         novel.processNovel()
 
 
-
-def getInputFile() -> List[str]:
-    """return code and novel name from input.txt"""
+#return code and novel name from input.txt
+def getInputFile():
     inputfile=open('input.txt','r+', encoding='utf-8')
     line=inputfile.readline()
     novel_list=[]
@@ -110,9 +106,8 @@ def getInputFile() -> List[str]:
     inputfile.close()
     return novel_list
 
-
-def getNovelInfoFromFolderName(folderName) :
-    """return code and novel name from the local novel folder """
+#return code and novel name from novel folder 
+def getNovelInfoFromFolderName(folderName):
     code=       folderName.find(' ')
     novel_name= folderName[code+1:].strip()
     code=       folderName[:code]
@@ -147,13 +142,15 @@ def download(keep_text_format=False):
 
         dir=''
         if (name==''):
+            dir='./novel_list/'
             name=novel.getNovelTitle()
-
-        name=checkFileName(name)
-        print(name)
-        dir='./novel_list/'+code+' '+name
-        dir = checkFilePathLength(dir)
-        
+            name=checkTitle(name)
+            print(name)
+            dir+=code+' '+name
+            print(dir)
+        else:
+            name=checkTitle(name)
+            dir='./novel_list/'+code+' '+name
         if code+' '+name not in match:
             try :
                 os.mkdir('%s'%dir)
@@ -171,9 +168,8 @@ def download(keep_text_format=False):
         novel.setLastChapter(0)
         novel.processNovel()
 
-
+#register as csv every folder name and the number of chapter
 def getFolderStatus():
-    """register as csv every folder name and the number of chapter"""
     dir='./novel_list'
     statusList=[]
     for novel_folder in os.listdir(dir):
@@ -193,9 +189,8 @@ def getFolderStatus():
         print('%s %s %s'%(code,lastchap,novel_name))
     enterInCSV(dir+'/status.csv',statusList)
 
-
+#overwrite the file with tab content
 def enterInCSV(filename,tab):
-    """overwrite the file with tab content"""
     file = open(filename, 'w+', encoding='utf-8')
     for line in tab:
         file.write('%1s %1s %2s\n'%(line[0],line[1],line[2]))
@@ -214,9 +209,8 @@ def compressNovelDirectory(novelDirectory,outputDir):
     print()
     zipf.close()
 
-
+#compress in zip format every novel folder found
 def compressAll(regex='',outputDir=''):
-    """compress in zip format every novel folder found"""
     if (outputDir==''):
         dirlist=os.listdir('./')
         print(dirlist)
@@ -235,12 +229,11 @@ def compressAll(regex='',outputDir=''):
             compressNovelDirectory(dir+'/'+subdir,outputDir)
     return(DirToCompress)
 
-
+#find in the novels folder every regex match
 def findNovel(regex,dir='./novel_list'):
-    """find in the novels folder every regex match"""
     import re
     liste=[]
-    regex=  re.compile(regex)
+    regex=  re.compile(".*"+regex+".*", re.IGNORECASE)
     novel_folders=os.listdir(dir)
     liste=list(filter(regex.match, novel_folders))
     return liste
