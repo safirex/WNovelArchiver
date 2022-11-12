@@ -365,8 +365,12 @@ class KakuyomuNovel(Novel):
         self.url = 'https://kakuyomu.jp/works/%s' % self.code
 
     def parseTitle(self, TocHTML):
-        chapter_title = re.findall(
-            '<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<', TocHTML)[0]
+        soup = BeautifulSoup(TocHTML,'html.parser')
+        chapter_title =soup.find('h1',id='workTitle').text
+        # print(soup.find('h1',class_='workTitle'))
+
+        # chapter_title = re.findall(
+        #     '<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<', TocHTML)[0]
         return chapter_title
 
     def parseOnlineChapterList(self, html) -> list:
