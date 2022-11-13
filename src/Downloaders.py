@@ -330,6 +330,7 @@ class SyosetuNovel(Novel):
         new_title = re.sub(rstr, "_", title)
         return new_title
     def parseTitle(self, TocHTML) -> str:
+
         writer = re.findall(r'<p class="novel_title">(.*?)</p>', TocHTML, re.S)
         print('title = '+str(writer))
         return writer[0]
@@ -562,6 +563,7 @@ def checkFileName(str):
     str = str.replace('!', '')
     str = str.replace(':', '')
     str = str.replace('"', '')
+    str = str.replace('\"', '')
     str = str.replace('*', '')
     str = str.replace('/', '')
     str = str.replace('\\', '')
@@ -573,6 +575,8 @@ def checkFileName(str):
     str = str[:250 - len('./novel_list/')]
     return str
 
+def checkFilePathLength(str):
+    return str[:200]
 
 class WuxiaWorldNovel(Novel):
     def __init__(self, Novel):
