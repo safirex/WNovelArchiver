@@ -176,7 +176,7 @@ def download_cli(userInput:str):
     novel_info = userInput.strip().split(';')
     if(len(novel_info)<2):
         novel_info.append('')
-    
+    name = novel_info[1]
     novel=Novel(novel_info[0],novel_info[1])
     novel=novel.updateObject()
     if(novel==0):
