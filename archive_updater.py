@@ -93,6 +93,8 @@ def parser():
         ,default=argparse.SUPPRESS)
     parser.add_argument("-md", help="format",action='store_true'
         ,default=argparse.SUPPRESS)   
+    parser.add_argument("-i", help="for a command line download input",
+        type=str, default=argparse.SUPPRESS)  
 
     args = parser.parse_args()
     print(args)
@@ -107,8 +109,12 @@ def parser():
             regex=args.r
 
         if(args.mode==downloadInput):
-            print("downloading")
-            download(keep_text_format)
+            if hasattr(args, 'i'):
+                print(args.i)
+                download_cli(args.i)
+            else: 
+                print("downloading")
+                download(keep_text_format)
             
         elif(args.mode==updateInput):
             archiveUpdate(findNovel(regex),keep_text_format)

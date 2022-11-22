@@ -18,6 +18,9 @@ from archive_updater import check_env
 
 class TestMainFunctions(unittest.TestCase):
 
+    def init(self):
+        os.mkdir('novel_list')
+
     def test_find(self):
         self.assertTrue(len(findNovel("")) ==
                         len(os.listdir('novel_list')))

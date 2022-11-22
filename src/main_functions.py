@@ -172,6 +172,48 @@ def download(keep_text_format=False):
         novel.processNovel()
 
 
+def download_cli(userInput:str):
+    novel_info = userInput.strip().split(';')
+    if(len(novel_info)<2):
+        novel_info.append('')
+    
+    novel=Novel(novel_info[0],novel_info[1])
+    novel=novel.updateObject()
+    if(novel==0):
+        return
+    #detect if the novel has already been downloaded
+    match=findNovel(novel.code)
+    if (len(match)>0):
+        print(match[0][:25]+'... \t folder already exists')
+        return
+
+    dir=''
+    if (name==''):
+        name=novel.getNovelTitle()
+    
+    name=checkFileName(name)
+    print(name)
+    dir='./novel_list/'+novel.code+' '+name
+    dir = checkFilePathLength(dir)
+    
+    if novel.code+' '+name not in match:
+        try :
+            os.mkdir('%s'%dir)
+        except FileExistsError:
+            print("the folder already exists")
+            return
+    else:
+        print(novel.code+' '+name+' folder already imported, update to fetch updates')
+        return
+
+    print("dir=  "+dir)
+    
+    #dir='./novel_list/'+code+' '+name
+    novel.setDir(dir)
+    novel.setLastChapter(0)
+    novel.processNovel()
+
+
 def getFolderStatus():
     """register as csv every folder name and the number of chapter"""
     dir='./novel_list'
