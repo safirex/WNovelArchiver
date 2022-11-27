@@ -13,6 +13,7 @@ def checkFileName(str) -> str:
     str=str.replace('*','')
     str=str.replace('/','')
     str=str.replace('\\','')
+    str=str.replace('\t','')
     str=str.replace('|','')
     str=str.replace('<','')
     str=str.replace('>','')
@@ -83,6 +84,7 @@ class Chapter():
         chapter_title=checkFileName(self.title)
         print("titre"+chapter_title)
         print('saving '+str(self.num)+' '+chapter_title)
+        
         file = open('%s/%s_%s.txt'%(dir,self.num,chapter_title), 'w+', encoding='utf-8')
         file.write(chapter_title+'\n')
         file.write(self.content)
@@ -105,7 +107,7 @@ class KakyomuChapter(Chapter):
         chapter_title = re.findall(
             '<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<', html)[0]
         print("title found = "+str(chapter_title))
-        return chapter_title
+        return checkFileName(chapter_title)
     
     def parseContent(self, html,keep_text_format=False):
         soup = BeautifulSoup(html, 'html.parser')

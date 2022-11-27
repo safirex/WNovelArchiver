@@ -13,3 +13,6 @@ soshite*
 test.py
 .env
 .idea
+baseCode/*
+build/*
+dist/*
