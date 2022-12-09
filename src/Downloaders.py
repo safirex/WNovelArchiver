@@ -430,6 +430,7 @@ class N18SyosetuNovel(Novel):
             html = self.connectViaMechanize(url)
         except (mechanize.HTTPError,mechanize.URLError) as e:
             print('novel has been stopped')
+            print(e)
             return ''
 
 
@@ -502,8 +503,19 @@ class N18SyosetuNovel(Novel):
 
         print('beginning server cracking beep boop')
         br = mechanize.Browser()
-        br.addheaders = [('User-agent', 'Firefox')]
+        br.set_handle_robots(False)
+        # br.addheaders = [('User-agent', 'Firefox')]
+        br.addheaders = [('User-agent','Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; WOW64; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; InfoPath.3; AskTB5.6)')]
 
+        import ssl
+        try:
+            _create_unverified_https_context = ssl._create_unverified_context
+        except AttributeError:
+            # Legacy Python that doesn't verify HTTPS certificates by default
+            pass
+        else:
+            # Handle target environment that doesn't support HTTPS verification
+            ssl._create_default_https_context = _create_unverified_https_context
         cj = cookielib.LWPCookieJar()
         # add a cookie to cookie jar
         # Cookie(version, name, value, port, port_specified, domain,
