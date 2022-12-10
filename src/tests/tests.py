@@ -18,7 +18,7 @@ from archive_updater import check_env
 
 class TestMainFunctions(unittest.TestCase):
 
-    def init(self):
+    def setUp(self):
         os.mkdir('novel_list')
 
     def test_find(self):
@@ -31,10 +31,14 @@ class TestMainFunctions(unittest.TestCase):
         novel=novel.updateObject();
         self.assertTrue(novel.__class__==KakuyomuNovel.__class__)
 
-
+# def suite():
+#     suite= unittest.TestSuite()
+#     suite.addTest()
 
 
 
 if __name__ == '__main__':
     check_env()
     unittest.main()
+    # runner = unittest.TextTestRunner()
+    # runner.run(suite())
