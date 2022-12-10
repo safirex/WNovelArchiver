@@ -71,7 +71,7 @@ class NovelCallbacks(SystemCallbacks):
 
 # TODO: updateObject should be in a NovelFactory 
 class Novel(NovelCallbacks):
-    def __init__(self, codeNovel, titreNovel, keep_text_format=False):
+    def __init__(self, codeNovel, titreNovel='', keep_text_format=False):
         super().__init__()
         self.code = codeNovel
         self.titre = titreNovel
@@ -416,6 +416,9 @@ class N18SyosetuNovel(Novel):
         super().__init__(novel.code, novel.titre, novel.keep_text_format)
         # self.cookie={'autologin':getCookies()}
 
+    def setUrl(self):
+        self.url = self.site + '/%s/' % self.code
+    
     def processNovel(self):
         import http.cookiejar as cookielib
         import mechanize
@@ -472,7 +475,7 @@ class N18SyosetuNovel(Novel):
 
     def getNovelTitle(self, html=''):
         # https://novel18.syosetu.com/n8451sz/
-        url = self.site + '/%s/' % self.code
+        url = self.url
         print('\naccessing: ' + url)
         # https://novel18.syosetu.com/n8451sz
         # cookies={'autologin':'1872412%3C%3E014ebbec6d4b5ba4b35b8b5853e19625f9e6bf77eb2609658c927a0a8b4989b6'}
@@ -496,6 +499,10 @@ class N18SyosetuNovel(Novel):
         file.write(chapter_content)
         file.close()
         print('\n\n')
+
+    
+    def fetchTOCPage(self):
+        return self.connectViaMechanize(self.url)
 
     def connectViaMechanize(self, url):
         import http.cookiejar as cookielib
@@ -634,6 +641,7 @@ class WuxiaWorldNovel(Novel):
         chapter.getContent(chapter_html)
         return chapter
 
+
     def connectViaMechanize(self, url):
         import http.cookiejar as cookielib
         from bs4 import BeautifulSoup
@@ -664,7 +672,7 @@ class WuxiaWorldNovel(Novel):
         resp = br.response()
         content = resp.get_data()
         soup = BeautifulSoup(content, 'html.parser')
-        return str(soup)
+        return soup.text
 
 class NovelPia(Novel):
     def __init__(self, novel):
