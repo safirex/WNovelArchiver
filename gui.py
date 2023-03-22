@@ -9,7 +9,7 @@ import os
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QWidget,  QListWidget, QVBoxLayout, QLabel, QPushButton, QListWidgetItem, \
     QHBoxLayout
-from regex import D
+#from regex import D
 from src.main_functions import *
 
 
