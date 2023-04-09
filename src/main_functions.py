@@ -145,31 +145,34 @@ def download(keep_text_format=False):
             print(match[0][:25]+'... \t folder already exists')
             continue
 
-        dir=''
-        if (name==''):
-            name=novel.getNovelTitle()
+        try:
+            dir=''
+            if (name==''):
+                name=novel.getNovelTitle()
 
-        name=checkFileName(name)
-        print(name)
-        dir='./novel_list/'+code+' '+name
-        dir = checkFilePathLength(dir)
-        
-        if code+' '+name not in match:
-            try :
-                os.mkdir('%s'%dir)
-            except FileExistsError:
-                print("the folder already exists")
+            name=checkFileName(name)
+            print(name)
+            dir='./novel_list/'+code+' '+name
+            dir = checkFilePathLength(dir)
+            
+            if code+' '+name not in match:
+                try :
+                    os.mkdir('%s'%dir)
+                except FileExistsError:
+                    print("the folder already exists")
+                    continue
+            else:
+                print(code+' '+name+' folder already imported, update to fetch updates')
                 continue
-        else:
-            print(code+' '+name+' folder already imported, update to fetch updates')
-            continue
 
-        print("dir=  "+dir)
-        
-        #dir='./novel_list/'+code+' '+name
-        novel.setDir(dir)
-        novel.setLastChapter(0)
-        novel.processNovel()
+            print("dir=  "+dir)
+            
+            #dir='./novel_list/'+code+' '+name
+            novel.setDir(dir)
+            novel.setLastChapter(0)
+            novel.processNovel()
+        except Exception as err:
+            print("novel ",code," hasn't been downloaded because ",err)
 
 
 def download_cli(userInput:str):
