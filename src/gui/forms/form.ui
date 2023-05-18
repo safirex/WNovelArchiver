@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QWidget" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="0">
+    <layout class="QGridLayout" name="gridLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetMaximumSize</enum>
+     </property>
+     <item row="4" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QPushButton" name="pushButton_2">
+         <property name="text">
+          <string>PushButton</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButtonUpdate">
+         <property name="text">
+          <string>update</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_3">
+         <property name="text">
+          <string>PushButton</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="3" column="0">
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="2" column="0">
+        <widget class="QLabel" name="LabelLocalProgress">
+         <property name="text">
+          <string>Local Progress</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="LabelGlobalProgress">
+         <property name="text">
+          <string>Global Progress</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QProgressBar" name="progressBarGlobal">
+         <property name="value">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QProgressBar" name="progressBarLocal">
+         <property name="value">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="0" column="0">
+      <widget class="QListWidget" name="listWidget">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>1</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
