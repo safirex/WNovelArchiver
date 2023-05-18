@@ -329,9 +329,9 @@ class SyosetuNovel(Novel):
         rstr = r"[\/\\\:\*\?\"\<\>\|]"
         new_title = re.sub(rstr, "_", title)
         return new_title
-    def parseTitle(self, TocHTML) -> str:
 
-        writer = re.findall(r'<p class="novel_title">(.*?)</p>', TocHTML, re.S)
+    def getNovelTitle(self,html):
+        writer = re.findall(r'<p class="novel_title">(.*?)</p>', html, re.S)
         print('title = '+str(writer))
         return writer[0]
 
