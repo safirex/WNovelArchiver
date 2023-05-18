@@ -248,14 +248,15 @@ def enterInCSV(filename,tab):
 
 
 
-def compressNovelDirectory(novelDirectory,outputDir):
+def compressNovelDirectory(novelDirectory,parentFolder='./',outputDir='./'):
     import zipfile
     novelname=novelDirectory[novelDirectory.rfind('/')+1:]
     outputZipName=outputDir+'/'+novelname+'.zip'
     zipf = zipfile.ZipFile(outputZipName, 'w', zipfile.ZIP_DEFLATED)
-    for tab in os.walk(novelDirectory):
+    for tab in os.walk(parentFolder+novelDirectory):
         for file in tab[2]:
-            zipf.write(os.path.join(tab[0], file))
+            folder_name = str(tab[0]).replace("./novel_list/","")
+            zipf.write(os.path.join(tab[0], file),os.path.join(folder_name,file))
     print()
     zipf.close()
 
@@ -277,7 +278,7 @@ def compressAll(regex='',outputDir=''):
     for subdir in DirToCompress:
         print('done at '+str(DirToCompress.index(subdir))+' on '+str(len(DirToCompress)))
         if(subdir.find('.')==-1):
-            compressNovelDirectory(dir+'/'+subdir,outputDir)
+            compressNovelDirectory(subdir,dir+'/',outputDir)
     return(DirToCompress)
 
 
