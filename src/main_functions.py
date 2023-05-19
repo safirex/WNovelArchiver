@@ -1,8 +1,19 @@
 import os
-
+import re
+import logging
 from typing import List
 
-from  src.Downloaders import *
+from src.Downloaders import *
+import zipfile
+
+
+factory = NovelFactory()
+
+factory.registerObject(N18SyosetuNovel.getSiteId(), N18SyosetuNovel)
+factory.registerObject(SyosetuNovel.getSiteId(), SyosetuNovel)
+factory.registerObject(KakuyomuNovel.getSiteId(), KakuyomuNovel)
+
+
 
 def archiveUpdate(dirList=[],keep_text_format=False):
     if not dirList:
@@ -14,9 +25,9 @@ def archiveUpdate(dirList=[],keep_text_format=False):
         print()
         novelInfo=getNovelInfoFromFolderName(novel_folder)
         #change the fetching process following the site it's hosted on
-        
-        novel=Novel(novelInfo[1],novelInfo[0],keep_text_format)
-        novel=novel.updateObject()
+        novel = factory.getNovel(novelInfo[1],novelInfo[0], keep_text_format)
+        #novel=Novel(novelInfo[1],novelInfo[0],keep_text_format)
+        #novel=novel.updateObject()
         if(novel==0):
             print(novel_folder+' couldnt be updated because the code doesnt match known formats')
             continue
@@ -50,8 +61,9 @@ def archiveFullUpdate(dirList=[],force=False):
         #here we got the novel code and our folder name
 
         #we adapt the fetching process behaviour following the site it's hosted on
-        novel=Novel(code,novel_name)
-        novel=novel.updateObject()
+        novel = factory.getNovel(code, novel_name, False)
+        #novel=Novel(code,novel_name)
+        #novel=novel.updateObject()
         if(novel==0):
             print(novel_folder+' couldnt be updated')
             continue
@@ -130,13 +142,15 @@ def download(keep_text_format=False):
         if code=='':
             continue
         
-        name=novel_info[1]
-        #print('i '+name)
+        title=novel_info[1]
+        #print('i '+title)
         
-        print(keep_text_format)
-        novel=Novel(code,name,keep_text_format)
-        novel=novel.updateObject()
+        print('Working on:', code, 'Title:', title, 'Keep Format:', keep_text_format)
+        #novel=Novel(code,name,keep_text_format)
+        #novel=novel.updateObject()
+        novel = factory.getNovel(code, title, keep_text_format)
         if(novel==0):
+            print(code,title,"doesn't match any defined novel")
             continue
 
         #detect if the novel has already been downloaded
@@ -146,42 +160,46 @@ def download(keep_text_format=False):
             continue
 
         try:
-            dir=''
-            if (name==''):
-                name=novel.getNovelTitle()
+            dir_path=''
+            if (title==''):
+                title=novel.getNovelTitle()
 
-            name=checkFileName(name)
-            print(name)
-            dir='./novel_list/'+code+' '+name
-            dir = checkFilePathLength(dir)
+            title=checkFileName(title)
+            print(title)
+            dir_path='./novel_list/'+code+' '+title
+            dir_path = checkFilePathLength(dir_path)
             
-            if code+' '+name not in match:
+            if code+' '+title not in match:
                 try :
-                    os.mkdir('%s'%dir)
+                    os.mkdir('%s'%dir_path)
                 except FileExistsError:
                     print("the folder already exists")
                     continue
             else:
-                print(code+' '+name+' folder already imported, update to fetch updates')
+                print(code+' '+title+' folder already imported, update to fetch updates')
                 continue
 
-            print("dir=  "+dir)
+            print("dir_path=  "+dir_path)
             
-            #dir='./novel_list/'+code+' '+name
-            novel.setDir(dir)
+            #dir_path='./novel_list/'+code+' '+name
+            novel.setDir(dir_path)
             novel.setLastChapter(0)
             novel.processNovel()
         except Exception as err:
-            print("novel ",code," hasn't been downloaded because ",err)
+            # log = logging.getLogger(__name__)
+            # log.exception("")
+            print("novel ",code," hasn't been downloaded" )
+            raise(err)
 
 
 def download_cli(userInput:str):
     novel_info = userInput.strip().split(';')
     if(len(novel_info)<2):
         novel_info.append('')
-    name = novel_info[1]
-    novel=Novel(novel_info[0],novel_info[1])
-    novel=novel.updateObject()
+    title = novel_info[1]
+    novel = factory.getNovel(novel_info[0], title, False)
+    #novel=Novel(novel_info[0],novel_info[1])
+    #novel=novel.updateObject()
     if(novel==0):
         return
     #detect if the novel has already been downloaded
@@ -190,38 +208,37 @@ def download_cli(userInput:str):
         print(match[0][:25]+'... \t folder already exists')
         return
 
-    dir=''
-    if (name==''):
-        name=novel.getNovelTitle()
+    if (title==''):
+        title=novel.getNovelTitle()
     
-    name=checkFileName(name)
-    print(name)
-    dir='./novel_list/'+novel.code+' '+name
-    dir = checkFilePathLength(dir)
+    title=checkFileName(title)
+    print(title)
+    path='./novel_list/'+novel.code+' '+title
+    path = checkFilePathLength(path)
     
-    if novel.code+' '+name not in match:
+    if novel.code+' '+title not in match:
         try :
-            os.mkdir('%s'%dir)
+            os.mkdir('%s'%path)
         except FileExistsError:
             print("the folder already exists")
             return
     else:
-        print(novel.code+' '+name+' folder already imported, update to fetch updates')
+        print(novel.code+' '+title+' folder already imported, update to fetch updates')
         return
 
-    print("dir=  "+dir)
+    print("dir=  "+path)
     
-    #dir='./novel_list/'+code+' '+name
-    novel.setDir(dir)
+    #path='./novel_list/'+code+' '+name
+    novel.setDir(path)
     novel.setLastChapter(0)
     novel.processNovel()
 
 
 def getFolderStatus():
     """register as csv every folder name and the number of chapter"""
-    dir='./novel_list'
+    path='./novel_list'
     statusList=[]
-    for novel_folder in os.listdir(dir):
+    for novel_folder in os.listdir(path):
         code=novel_folder.find(' ')
         if code==-1:
             print(code)
@@ -229,14 +246,14 @@ def getFolderStatus():
         novel_name=novel_folder[code:]
         code=novel_folder[:code]
         lastchap=0
-        for file in os.listdir(dir+'/'+novel_folder):
+        for file in os.listdir(path+'/'+novel_folder):
             chapnum=file.find('_')
             chapnum=int(file[:chapnum])
             if(chapnum>lastchap):
                 lastchap=chapnum
         statusList.append([code,lastchap,novel_name])
         print('%s %s %s'%(code,lastchap,novel_name))
-    enterInCSV(dir+'/status.csv',statusList)
+    enterInCSV(path+'/status.csv',statusList)
 
 
 def enterInCSV(filename,tab):
@@ -249,7 +266,6 @@ def enterInCSV(filename,tab):
 
 
 def compressNovelDirectory(novelDirectory,parentFolder='./',outputDir='./'):
-    import zipfile
     novelname=novelDirectory[novelDirectory.rfind('/')+1:]
     outputZipName=outputDir+'/'+novelname+'.zip'
     zipf = zipfile.ZipFile(outputZipName, 'w', zipfile.ZIP_DEFLATED)
@@ -269,9 +285,9 @@ def compressAll(regex='',outputDir=''):
         outputDir='./zip'
         if 'zip' not in dirlist :
             os.mkdir('zip')
-    dir='./novel_list'
+    path='./novel_list'
     DirToCompress=[]
-    for novel_folder in os.listdir(dir):
+    for novel_folder in os.listdir(path):
         if novel_folder.find(regex)!=-1:
             DirToCompress.append(novel_folder)
 
@@ -282,11 +298,9 @@ def compressAll(regex='',outputDir=''):
     return(DirToCompress)
 
 
-def findNovel(regex,dir='./novel_list'):
+def findNovel(regex,path='./novel_list'):
     """find in the novels folder every regex match"""
-    import re
-    liste=[]
     regex=  re.compile(regex)
-    novel_folders=os.listdir(dir)
+    novel_folders=os.listdir(path)
     liste=list(filter(regex.match, novel_folders))
     return liste
