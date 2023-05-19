@@ -125,7 +125,7 @@ def parser():
     parser_update.set_defaults(func=option_update)
     
     parser_zip = subparsers.add_parser('zip', help='zip help')
-    parser_zip.add_argument('-o', type=str, help='output directory')
+    parser_zip.add_argument('-o', type=str, help='output directory', default='')
     parser_zip.add_argument('-r', type=str, help='set a regex filtering the novels', default='')
     parser_zip.set_defaults(func=option_zip)
     

@@ -78,8 +78,6 @@ class Chapter():
         return chapter_content
 
 
-    def save(self, path):
-        pass
 
     def createFile(self, path):
         chapter_title=checkFileName(self.title)

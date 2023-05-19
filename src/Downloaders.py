@@ -71,12 +71,22 @@ class NovelCallbacks(SystemCallbacks):
     def onChapterListFetched(self):
         print("chapter list obtained")
     
-
+class FactoryTarget:
+    @staticmethod
+    def getSiteId():
+        raise("getSiteId method is not defined")
+    
+    @staticmethod
+    def containsCode():
+        raise("containsCode method isn't defined")
+    
 class ObjectFactory:
     def __init__(self):
         self._creators = {}
 
-    def registerObject(self, key, creator):
+    def registerObject(self, item:FactoryTarget):
+        key = item.getSiteId()
+        creator = item
         self._creators[key] = creator
 
     def create(self, key, *kwargs):
@@ -104,7 +114,7 @@ class NovelFactory(ObjectFactory):
 
 
 # TODO: updateObject should be in a NovelFactory 
-class Novel(NovelCallbacks):
+class Novel(NovelCallbacks,FactoryTarget):
     def __init__(self, codeNovel, titreNovel='', keep_text_format=False):
         super().__init__()
         self.code = codeNovel
@@ -189,7 +199,7 @@ class Novel(NovelCallbacks):
         return self.dir
 
     def parseTitle(self, TocHTML) ->str:
-        pass
+        raise("parseTitle method is not defined")
 
     def getTitle(self):
         return self.titre
@@ -199,7 +209,7 @@ class Novel(NovelCallbacks):
 
     def setUrl(self):
         """method meant to be implemented by subclasses, determine the url to said novel"""
-        pass
+        raise("setUrl method is not defined")
     
     
     def fetchTOCPage(self):
@@ -217,11 +227,11 @@ class Novel(NovelCallbacks):
 
     def parseOnlineChapterList(self, html) -> list:
         """parse the list of chapters from the HTML of the TOC page"""
-        pass
+        raise("parseOnlineChapterList method is not defined")
 
     def parseTocResume(self, html=''):
         """ format and interpret the content of the home page of the novel """
-        pass
+        raise("parseTocResume method is not defined")
 
     def processNovel(self):
         print("novel " + self.titre)
@@ -255,9 +265,10 @@ class Novel(NovelCallbacks):
                 chap = self.getChapter(chapter_num)
                 chap.createFile(self.dir + '/')
         pass
+    
     def getChapter(self,chapter_num) ->Chapter:
         """return the subclass chapter type"""
-        pass
+        raise("getChapter method is not defined")
     
     def updatePerDate(self,html):
         """check if local files are outdate compared to online chapters"""
