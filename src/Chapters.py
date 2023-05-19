@@ -34,10 +34,11 @@ class Chapter():
     def setTitle(self,Title):
         self.title=Title
 
-    def setUrl(self) -> str:
+    def setUrl(self):
         """"will define Url chapter"""
-        pass
-    def getUrl(self):
+        raise(Exception(self," doesn't have a proper setUrl function definition"))
+    
+    def getUrl(self) -> str:
         return self.url
 
     def processChapter(self,headers):
@@ -50,11 +51,11 @@ class Chapter():
         
     def parseTitle(self,html) -> str:
         """returns the title of the page"""
-        pass
+        raise(Exception(self," doesn't have a proper parseTitle function definition"))
     
     def parseContent(self,html):
         """returns the content of the page"""
-        pass
+        raise(Exception(self," doesn't have a proper parseContent function definition"))
     
     
     def validateTitle(self,title):
@@ -97,7 +98,7 @@ class KakyomuChapter(Chapter):
     def __init__(self,num,url):
         super().__init__(num,url)
         
-    def setUrl(self) -> str:
+    def setUrl(self) :
         # self.url = 'https://kakuyomu.jp/works/%s/episodes/%s'%(self.novelNum,self.num)
         print("url = "+str(self.url))
         pass

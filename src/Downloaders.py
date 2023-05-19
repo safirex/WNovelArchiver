@@ -144,8 +144,6 @@ class Novel(NovelCallbacks):
         elif (len(self.code) == len('1177354054888541019') or
               len(self.code) == len('16816452219449457673')):
             return KakuyomuNovel(self)
-        elif (self.code.lower().find('wuxiaworld') == 0):
-            return WuxiaWorldNovel(self)
         else:
             return 0
 

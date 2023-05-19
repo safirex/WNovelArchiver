@@ -18,11 +18,7 @@ downloadInput='d'
 statusInput='s'
 compressInput='c'
 
-novels = NovelFactory()
-novels.registerObject(N18SyosetuNovel.getSiteId(), N18SyosetuNovel)
-novels.registerObject(SyosetuNovel.getSiteId(), SyosetuNovel)
-novels.registerObject(KakuyomuNovel.getSiteId(), KakuyomuNovel)
-novels.registerObject(WuxiaWorldNovel.getSiteId(), WuxiaWorldNovel)
+# novels.registerObject(WuxiaWorldNovel.getSiteId(), WuxiaWorldNovel)
 #novels.registerObject(NovelPia.getSiteId(), NovelPia)
 
 def dev_tests():
