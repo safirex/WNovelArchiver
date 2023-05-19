@@ -1,8 +1,11 @@
 # coding: utf-8
-from abc import ABC, abstractmethod
+from abc import ABC
 from urllib.error import HTTPError
-import requests
+import requests 
+from datetime import date
+import os
 import re
+import sys
 from bs4 import BeautifulSoup
 
 from src.Chapters import *
@@ -68,9 +71,50 @@ class NovelCallbacks(SystemCallbacks):
     def onChapterListFetched(self):
         print("chapter list obtained")
     
+class FactoryTarget:
+    @staticmethod
+    def getSiteId():
+        raise("getSiteId method is not defined")
+    
+    @staticmethod
+    def containsCode():
+        raise("containsCode method isn't defined")
+    
+class ObjectFactory:
+    def __init__(self):
+        self._creators = {}
+
+    def registerObject(self, item:FactoryTarget):
+        key = item.getSiteId()
+        creator = item
+        self._creators[key] = creator
+
+    def create(self, key, *kwargs):
+        creator = self._creators.get(key)
+        if not creator:
+            raise ValueError(key)
+        return creator(*kwargs)
+
+
+""" Novels for the NovelFactory must implement the following static methods: 
+containsCode(code) that uses the code to see if the novel is at that site.
+getSiteId() that returns the string id or nickname for that web site. """
+class NovelFactory(ObjectFactory):
+    def getSiteId(self, code):
+        for key, creator in self._creators.items():
+            if (creator.containsCode(code)):
+                return key
+        return 0
+                  
+    def getNovel(self, code, title='', keep_text_format=False):
+        key = self.getSiteId(code)
+        if (key != 0):
+            return self.create(key, code, title, keep_text_format)
+        return 0
+
 
 # TODO: updateObject should be in a NovelFactory 
-class Novel(NovelCallbacks):
+class Novel(NovelCallbacks,FactoryTarget):
     def __init__(self, codeNovel, titreNovel='', keep_text_format=False):
         super().__init__()
         self.code = codeNovel
@@ -87,11 +131,11 @@ class Novel(NovelCallbacks):
         
     def downloadNovel(self, chapter) -> str:
         """ download chapter from site. """
-        pass
+        raise Exception(self,"doesn't have a proper downloadNovel function definition")
 
-    def processNovel(self) -> str:
+    def processNovel(self) -> str: # type: ignore
         """ will process the html and download the chapter """
-        pass
+        raise Exception(self,"doesn't have a proper processNovel function definition")
 
     def getNovelTitle(self,html="") -> str:
         """ get the novel title from the TOC html page """
@@ -110,8 +154,6 @@ class Novel(NovelCallbacks):
         elif (len(self.code) == len('1177354054888541019') or
               len(self.code) == len('16816452219449457673')):
             return KakuyomuNovel(self)
-        elif (self.code.lower().find('wuxiaworld') == 0):
-            return WuxiaWorldNovel(self)
         else:
             return 0
 
@@ -122,15 +164,15 @@ class Novel(NovelCallbacks):
         nov = Novel(codeNovel, titreNovel, keep_text_format=False)
         return nov.updateObject()
 
-    def createFile(self, chapterNumber, chapter_title, chapter_content: str):
-        chapter_title = checkFileName(chapter_title)
-        print('saving %s %s' % (chapterNumber, chapter_title))
-        file = open('%s/%d_%s.txt' % (self.getDir(), chapterNumber,
-                                      chapter_title), 'w+', encoding='utf-8')
-        file.write(chapter_title + '\n')
-        file.write(chapter_content)
-        file.close()
-        print('\n\n')
+    # def createFile(self, chapterNumber, chapter_title, chapter_content: str):
+    #     chapter_title = checkFileName(chapter_title)
+    #     print('saving %s %s' % (chapterNumber, chapter_title))
+    #     file = open('%s/%d_%s.txt' % (self.getDir(), chapterNumber,
+    #                                   chapter_title), 'w+', encoding='utf-8')
+    #     file.write(chapter_title + '\n')
+    #     file.write(chapter_content)
+    #     file.close()
+    #     print('\n\n')
 
     def createFile(self, chapterNumber, chapter_title, chapter_content: list):
         chapter_title = checkFileName(chapter_title)
@@ -150,14 +192,14 @@ class Novel(NovelCallbacks):
     def getLastChapter(self):
         return self.chap
 
-    def setDir(self, dir):
-        self.dir = dir
+    def setDir(self, path):
+        self.dir = path
 
     def getDir(self):
         return self.dir
 
     def parseTitle(self, TocHTML) ->str:
-        pass
+        raise("parseTitle method is not defined")
 
     def getTitle(self):
         return self.titre
@@ -167,7 +209,7 @@ class Novel(NovelCallbacks):
 
     def setUrl(self):
         """method meant to be implemented by subclasses, determine the url to said novel"""
-        pass
+        raise("setUrl method is not defined")
     
     
     def fetchTOCPage(self):
@@ -185,11 +227,11 @@ class Novel(NovelCallbacks):
 
     def parseOnlineChapterList(self, html) -> list:
         """parse the list of chapters from the HTML of the TOC page"""
-        pass
+        raise("parseOnlineChapterList method is not defined")
 
     def parseTocResume(self, html=''):
         """ format and interpret the content of the home page of the novel """
-        pass
+        raise("parseTocResume method is not defined")
 
     def processNovel(self):
         print("novel " + self.titre)
@@ -223,29 +265,38 @@ class Novel(NovelCallbacks):
                 chap = self.getChapter(chapter_num)
                 chap.createFile(self.dir + '/')
         pass
+    
     def getChapter(self,chapter_num) ->Chapter:
         """return the subclass chapter type"""
-        pass
+        raise("getChapter method is not defined")
     
     def updatePerDate(self,html):
         """check if local files are outdate compared to online chapters"""
         pass
 
 class SyosetuNovel(Novel):
-    def __init__(self, Novel):
+    def __init__(self, code, title, keep_text_format):
         self.site = 'https://ncode.syosetu.com/'
         self.headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
-        super().__init__(Novel.code, Novel.titre, Novel.keep_text_format)
+        super().__init__(code, title, keep_text_format)
     
+    @staticmethod
+    def getSiteId():
+        return "Syoset"
+    
+    @staticmethod
+    def containsCode(code):
+        # This can be called in any order and needs to determine if this code is valid for this site.
+        if (len(code) >= 6 and len(code) <= 7 and code.startswith('n') and not code.startswith('n18n')):
+            return SyosetuNovel.getSiteId()#SyosetuNovel(code, title, keep_text_format)
+        return 0
+
     def setUrl(self):
         self.url = self.site + self.code + "/"
     
     def updatePerDate(self, html):
         """check every local file is the same version as online """
-        from bs4 import BeautifulSoup
-        from datetime import date
-        import os
         soup = BeautifulSoup(html, 'html.parser')
         online_chap_list = []
         for h in soup.find_all('dl'):
@@ -348,19 +399,31 @@ def test():
     print(x)
     name = x.titre
     print(name)
-    dir = './novel_list/' + x.code + ' ' + name
-    print(dir)
+    path = './novel_list/' + x.code + ' ' + name
+    print(path)
 
-    print("dir=  " + dir)
+    print("dir=  " + path)
     # dir='./novel_list/'+code+' '+name
-    x.setDir(dir)
+    x.setDir(path)
     x.setLastChapter(145)
     x.processNovel()
 
 
 class KakuyomuNovel(Novel):
-    def __init__(self, Novel):
-        super().__init__(Novel.code, Novel.titre, Novel.keep_text_format)
+    def __init__(self, code, title, keep_text_format):
+        super().__init__(code, title, keep_text_format)
+
+    @staticmethod
+    def getSiteId():
+        return "Kakuyomu"
+    
+    @staticmethod
+    def containsCode(code):
+        # This can be called in any order and needs to determine if this code is valid for this site.
+        if (len(code) == len('1177354054888541019') or
+              len(code) == len('16816452219449457673')):
+            return KakuyomuNovel.getSiteId()#KakuyomuNovel(code, title, keep_text_format)
+        return 0
 
     def setUrl(self):
         self.url = 'https://kakuyomu.jp/works/%s' % self.code
@@ -391,9 +454,9 @@ class KakuyomuNovel(Novel):
         self.onlineChapterList  = chapList
         return chapList
 
-    def getChapterTitle(self, str): 
+    def getChapterTitle(self, name): 
         chapter_title = re.findall(
-            '<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<', str)[0]
+            '<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<', name)[0]
         return chapter_title
     
     def getChapter(self,chapter_num) ->Chapter:
@@ -406,23 +469,32 @@ class KakuyomuNovel(Novel):
 
 class N18SyosetuNovel(Novel):
     
-    def __init__(self, novel):
+    def __init__(self, code, title, keep_text_format):
         
-        novel.setCode(novel.code[3:]) 
+        code = code[3:] 
         self.headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"}
         self.site = 'https://novel18.syosetu.com'
         # SyosetuNovel.__init__(self,novel)
-        super().__init__(novel.code, novel.titre, novel.keep_text_format)
+        super().__init__(code, title, keep_text_format)
         # self.cookie={'autologin':getCookies()}
+
+    @staticmethod
+    def getSiteId():
+        return "N18"
+    
+    @staticmethod
+    def containsCode(code):
+        # This can be called in any order and needs to determine if this code is valid for this site.
+        if (len(code) > 7 and code.startswith('n18n')):
+            return N18SyosetuNovel.getSiteId()#N18SyosetuNovel(code, title, keep_text_format)
+        return 0
 
     def setUrl(self):
         self.url = self.site + '/%s/' % self.code
     
     def processNovel(self):
-        import http.cookiejar as cookielib
         import mechanize
-        import sys
         print("sysosetu novel " + self.titre)
         print('last chapter: ' + str(self.getLastChapter()))
 
@@ -485,7 +557,6 @@ class N18SyosetuNovel(Novel):
 
         if (html == ''):
             html = self.connectViaMechanize(url)
-        import sys
         writer = re.findall(r'<p class="novel_title">(.*?)</p>', html)
         # print(writer)
         return writer[0]
@@ -550,7 +621,7 @@ class N18SyosetuNovel(Novel):
 
 def getCookies():
     file = open('./file.config', 'r+', encoding='utf-8')
-    line = searchNextLine(file, 'N18')
+    line = searchNextLine(file, 'N18') # TODO: check 
     line = searchNextLine(file, 'autologin')
     autologinkey = getCookieKey(line)
     print('key=' + autologinkey)
@@ -567,116 +638,139 @@ def getCookieKey(line):
     return key
 
 
-def searchNextLine(file, str):
+def searchNextLine(file, needle):
     line = file.readline()
     while line:
         print("{}".format(line.strip()))
-        if (line.find(str) != -1):
+        if (line.find(needle) != -1):
             return line
         line = file.readline()
     return -1
 
 
-def checkFileName(str):
-    str = str.replace('?', '')
-    str = str.replace('!', '')
-    str = str.replace(':', '')
-    str = str.replace('"', '')
-    str = str.replace('\"', '')
-    str = str.replace('*', '')
-    str = str.replace('/', '')
-    str = str.replace('\\', '')
-    str = str.replace('|', '')
-    str = str.replace('<', '')
-    str = str.replace('>', '')
-    str = str.replace('\t', '')
-    str = str.replace('\u3000', '')
-    str = str[:250 - len('./novel_list/')]
-    return str
+def checkFileName(name):
+    name = name.replace('?', '')
+    name = name.replace('!', '')
+    name = name.replace(':', '')
+    name = name.replace('"', '')
+    name = name.replace('\"', '')
+    name = name.replace('*', '')
+    name = name.replace('/', '')
+    name = name.replace('\\', '')
+    name = name.replace('|', '')
+    name = name.replace('<', '')
+    name = name.replace('>', '')
+    name = name.replace('\t', '')
+    name = name.replace('\u3000', '')
+    name = name[:250 - len('./novel_list/')]
+    return name
 
-def checkFilePathLength(str):
-    return str[:200]
+def checkFilePathLength(path):
+    return path[:200]
 
-class WuxiaWorldNovel(Novel):
-    def __init__(self, Novel):
-        self.site = 'https://www.wuxiaworld.com/novel/'
-        # "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"
-        self.headers = {"user-agent": "test"}
-        code = Novel.titre.replace(' ', '-')
-        code = code.lower()
-        Novel.code = code
-        # novel.code = the-trash-of-count
-        super(WuxiaWorldNovel, self).__init__(Novel.code, Novel.titre)
+# class WuxiaWorldNovel(Novel):
+#     def __init__(self, code, title, keep_text_format):
+#         self.site = 'https://www.wuxiaworld.com/novel/'
+#         self.headers = {"user-agent": "test"}
+#         code = title.replace(' ', '-')
+#         code = code.lower()
 
-    def processNovel(self):
-        print("WuxiaWorld novel " + self.titre)
-        print('last chapter: ' + str(self.getLastChapter()))
-        url = self.site + self.code
-        print('accessing ' + url)
+#         # novel.code = the-trash-of-count
+#         super().__init__(code, title, keep_text_format)
+#         #super(WuxiaWorldNovel, self).__init__(code, title, keep_text_format)
 
-        chapterListDiv = '/novel/%s/(.*?)"' % self.code
-        # rep=requests.get(url,headers=self.headers)
-        # rep.encoding='utf-8'
-        html = self.connectViaMechanize(url)
-        chapList = re.findall(chapterListDiv, html, re.DOTALL)[2:]
-        chapList = chapList[self.getLastChapter():]
-        print()
-        print("there are %d chapters to udpate" % len(chapList))
-        print(chapList)
-        print()
-        for chap in chapList:  # last chapter = 0 at beginning
-            self.setLastChapter(self.getLastChapter() + 1)
-            chapter_url = url + '/' + chap
-            print('chapter: ' + str(self.getLastChapter()) + '  ' + chapter_url)
-            chapter = self.processChapter(chapter_url, self.getLastChapter())
-            chapter.createFile(self.dir + '/')
+    # @staticmethod
+    # def getSiteId():
+    #     return "WuxiaWorld"
+    
+    # @staticmethod
+    # def containsCode(code):
+    #     # This can be called in any order and needs to determine if this code is valid for this site.
+    #     if (code.lower().find('wuxiaworld') == 0):
+    #         return WuxiaWorldNovel.getSiteId()#WuxiaWorldNovel(code, title, keep_text_format)
+    #     return 0
 
-    def processChapter(self, chapter_url, chapter_num):
-        chapter = WuxiaWorldChapter(chapter_url, chapter_num)
-        # chapter_rep=requests.get(chapter.getUrl(),headers=self.headers)
-        # chapter_rep.encoding='utf-8'
-        chapter_html = self.connectViaMechanize(chapter_url)
-        chapter.getTitle(chapter_html)
-        print(chapter.title)
-        chapter.getContent(chapter_html)
-        return chapter
+    # def processNovel(self):
+    #     print("WuxiaWorld novel " + self.titre)
+    #     print('last chapter: ' + str(self.getLastChapter()))
+    #     url = self.site + self.code
+    #     print('accessing ' + url)
+
+    #     chapterListDiv = '/novel/%s/(.*?)"' % self.code
+    #     # rep=requests.get(url,headers=self.headers)
+    #     # rep.encoding='utf-8'
+    #     html = self.connectViaMechanize(url)
+    #     chapList = re.findall(chapterListDiv, html, re.DOTALL)[2:]
+    #     chapList = chapList[self.getLastChapter():]
+    #     print()
+    #     print("there are %d chapters to udpate" % len(chapList))
+    #     print(chapList)
+    #     print()
+    #     for chap in chapList:  # last chapter = 0 at beginning
+    #         self.setLastChapter(self.getLastChapter() + 1)
+    #         chapter_url = url + '/' + chap
+    #         print('chapter: ' + str(self.getLastChapter()) + '  ' + chapter_url)
+    #         chapter = self.processChapter(chapter_url, self.getLastChapter())
+    #         chapter.createFile(self.dir + '/')
+
+    # def processChapter(self, chapter_url, chapter_num):
+    #     chapter = WuxiaWorldChapter(chapter_url, chapter_num)
+    #     # chapter_rep=requests.get(chapter.getUrl(),headers=self.headers)
+    #     # chapter_rep.encoding='utf-8'
+    #     chapter_html = self.connectViaMechanize(chapter_url)
+    #     chapter.getTitle(chapter_html)
+    #     print(chapter.title)
+    #     chapter.getContent(chapter_html)
+    #     return chapter
 
 
-    def connectViaMechanize(self, url):
-        import http.cookiejar as cookielib
-        from bs4 import BeautifulSoup
-        import mechanize
+    # def connectViaMechanize(self, url):
+    #     import http.cookiejar as cookielib
+    #     #from bs4 import BeautifulSoup
+    #     import mechanize
 
-        print('beginning server cracking beep boop')
-        br = mechanize.Browser()
-        br.addheaders = [('User-agent', 'Chrome')]
+    #     print('beginning server cracking beep boop')
+    #     br = mechanize.Browser()
+    #     br.addheaders = [('User-agent', 'Chrome')]
 
-        cj = cookielib.LWPCookieJar()
-        # add a cookie to cookie jar
-        # Cookie(version, name, value, port, port_specified, domain,
-        # domain_specified, domain_initial_dot, path, path_specified,
-        # secure, discard, comment, comment_url, rest)
+    #     cj = cookielib.LWPCookieJar()
+    #     # add a cookie to cookie jar
+    #     # Cookie(version, name, value, port, port_specified, domain,
+    #     # domain_specified, domain_initial_dot, path, path_specified,
+    #     # secure, discard, comment, comment_url, rest)
 
-        cj.set_cookie(cookielib.Cookie(0, 'over18', 'yes', '80', False, '.syosetu.com',
-                                       True, False, '/', True, False, None, False, None, None, None))
+    #     cj.set_cookie(cookielib.Cookie(0, 'over18', 'yes', '80', False, '.syosetu.com',
+    #                                    True, False, '/', True, False, None, False, None, None, None))
 
-        # autologinkey=str(self.cookie.get('autologin'))
-        # cj.set_cookie(cookielib.Cookie(0, 'autologin', autologinkey, '80', False, '.syosetu.com',
-        #    True, False, '/', True, False, None, False, None, None, None))
+    #     # autologinkey=str(self.cookie.get('autologin'))
+    #     # cj.set_cookie(cookielib.Cookie(0, 'autologin', autologinkey, '80', False, '.syosetu.com',
+    #     #    True, False, '/', True, False, None, False, None, None, None))
 
-        # print(cj)
-        br.set_handle_redirect(True)
-        br.set_cookiejar(cj)
-        print('accessing : ' + url)
-        br.open(url)
-        resp = br.response()
-        content = resp.get_data()
-        soup = BeautifulSoup(content, 'html.parser')
-        return soup.text
+    #     # print(cj)
+    #     br.set_handle_redirect(True)
+    #     br.set_cookiejar(cj)
+    #     print('accessing : ' + url)
+    #     br.open(url)
+    #     resp = br.response()
+    #     content = resp.get_data()
+    #     soup = BeautifulSoup(content, 'html.parser')
+    #     return soup.text
 
 class NovelPia(Novel):
-    def __init__(self, novel):
-        super().__init__(novel.code, novel.titre, novel.keep_text_format)
+    def __init__(self, code, title, keep_text_format):
+        super().__init__(code, title, keep_text_format)
+
+    @staticmethod
+    def getSiteId():
+        return "Pia"
+    
+    @staticmethod
+    def containsCode(code):
+        # This can be called in any order and needs to determine if this code is valid for this site.
+        if (code.lower().find('Pia') == 0):
+            return NovelPia.getSiteId()#WuxiaWorldNovel(code, title, keep_text_format)
+        else:
+            return 0
 
     def setUrl(self):
         self.url = 'https://novelpia.com/novel//%s'%self.code

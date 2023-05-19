@@ -3,7 +3,7 @@
 import argparse
 from argparse import RawDescriptionHelpFormatter
 import sys
-import os
+#import os
 sys.path.append('.\src')
 sys.path.append('..\src')
 
@@ -18,6 +18,8 @@ downloadInput='d'
 statusInput='s'
 compressInput='c'
 
+# novels.registerObject(WuxiaWorldNovel.getSiteId(), WuxiaWorldNovel)
+#novels.registerObject(NovelPia.getSiteId(), NovelPia)
 
 def dev_tests():
     # x = Novel('n6912eh', 'My Skills Are Too Strong to Be a Heroine')
@@ -33,9 +35,9 @@ def dev_tests():
 
 def test_novelpia2():
     from selenium import webdriver
-    from selenium.webdriver.common.by import By
+    #from selenium.webdriver.common.by import By
     from selenium.webdriver.firefox.options import Options
-    from bs4 import BeautifulSoup
+    #from bs4 import BeautifulSoup
 
     gecko = os.path.normpath(os.path.join(os.path.dirname(__file__)+"/libs", 'geckodriver'))
     # binary = FirefoxBinary(r'C:\Program Files (x86)\Mozilla Firefox\firefox.exe')
@@ -51,7 +53,7 @@ def test_novelpia():
     from selenium import webdriver
     from selenium.webdriver.common.by import By
     from selenium.webdriver.firefox.options import Options
-    from bs4 import BeautifulSoup
+    #from bs4 import BeautifulSoup
 
     gecko = os.path.normpath(os.path.join(os.path.dirname(__file__)+"/libs", 'geckodriver'))
     # binary = FirefoxBinary(r'C:\Program Files (x86)\Mozilla Firefox\firefox.exe')
@@ -68,6 +70,8 @@ def test_novelpia():
     print(soup)
 
     driver.close()
+    
+    
 def check_env():
     try: 
         os.listdir('novel_list')
@@ -121,7 +125,7 @@ def parser():
     parser_update.set_defaults(func=option_update)
     
     parser_zip = subparsers.add_parser('zip', help='zip help')
-    parser_zip.add_argument('-o', type=str, help='output directory')
+    parser_zip.add_argument('-o', type=str, help='output directory', default='')
     parser_zip.add_argument('-r', type=str, help='set a regex filtering the novels', default='')
     parser_zip.set_defaults(func=option_zip)
     
@@ -132,6 +136,7 @@ def parser():
     parser_zip.set_defaults(func=option_status)
     
     
+
     args = parser.parse_args()
     print(args)
     if(hasattr(args,"func")):

@@ -4,21 +4,21 @@ from bs4 import BeautifulSoup
 
 
 
-def checkFileName(str) -> str:
+def checkFileName(name) -> str:
     """ make sure the title is conform to windows url settings (260 char max)"""
-    str=str.replace('?','')
-    str=str.replace('!','')
-    str=str.replace(':','')
-    str=str.replace('"','')
-    str=str.replace('*','')
-    str=str.replace('/','')
-    str=str.replace('\\','')
-    str=str.replace('\t','')
-    str=str.replace('|','')
-    str=str.replace('<','')
-    str=str.replace('>','')
-    str=str[:250-len('./novel_list/')]
-    return str
+    name=name.replace('?','')
+    name=name.replace('!','')
+    name=name.replace(':','')
+    name=name.replace('"','')
+    name=name.replace('*','')
+    name=name.replace('/','')
+    name=name.replace('\\','')
+    name=name.replace('\t','')
+    name=name.replace('|','')
+    name=name.replace('<','')
+    name=name.replace('>','')
+    name=name[:250-len('./novel_list/')]
+    return name
 
 class Chapter():
     def __init__(self,num,url=''):
@@ -34,10 +34,11 @@ class Chapter():
     def setTitle(self,Title):
         self.title=Title
 
-    def setUrl(self) -> str:
+    def setUrl(self):
         """"will define Url chapter"""
-        pass
-    def getUrl(self):
+        raise(Exception(self," doesn't have a proper setUrl function definition"))
+    
+    def getUrl(self) -> str:
         return self.url
 
     def processChapter(self,headers):
@@ -50,11 +51,11 @@ class Chapter():
         
     def parseTitle(self,html) -> str:
         """returns the title of the page"""
-        pass
+        raise(Exception(self," doesn't have a proper parseTitle function definition"))
     
     def parseContent(self,html):
         """returns the content of the page"""
-        pass
+        raise(Exception(self," doesn't have a proper parseContent function definition"))
     
     
     def validateTitle(self,title):
@@ -77,15 +78,13 @@ class Chapter():
         return chapter_content
 
 
-    def save(self,dir):
-        pass
 
-    def createFile(self,dir):
+    def createFile(self, path):
         chapter_title=checkFileName(self.title)
         print("titre"+chapter_title)
         print('saving '+str(self.num)+' '+chapter_title)
         
-        file = open('%s/%s_%s.txt'%(dir,self.num,chapter_title), 'w+', encoding='utf-8')
+        file = open('%s/%s_%s.txt'%(path,self.num,chapter_title), 'w+', encoding='utf-8')
         file.write(chapter_title+'\n')
         file.write(self.content)
         file.close()
@@ -97,7 +96,7 @@ class KakyomuChapter(Chapter):
     def __init__(self,num,url):
         super().__init__(num,url)
         
-    def setUrl(self) -> str:
+    def setUrl(self) :
         # self.url = 'https://kakuyomu.jp/works/%s/episodes/%s'%(self.novelNum,self.num)
         print("url = "+str(self.url))
         pass
@@ -165,11 +164,11 @@ class N18SyosetuChapter(SyosetuChapter,Chapter):
         title = soup.find("p","novel_subtitle").text
         return title
 
-    def createFile(self,dir):
+    def createFile(self, path):
         chapter_title=checkFileName(self.title)
 
         print('saving '+str(self.num)+' '+chapter_title)
-        file = open('%s/%d_%s.txt'%(dir,self.num,chapter_title), 'w+', encoding='utf-8')
+        file = open('%s/%d_%s.txt'%(path,self.num,chapter_title), 'w+', encoding='utf-8')
         file.write(chapter_title+'\n')
         file.write(self.content)
         file.close()
@@ -185,7 +184,6 @@ class WuxiaWorldChapter(Chapter):
         self.url=url
 
     def getTitle(self,html):
-        from bs4 import BeautifulSoup
         soup = BeautifulSoup(html)
         title=''
         for h in soup.find_all('title'):
@@ -194,13 +192,12 @@ class WuxiaWorldChapter(Chapter):
         #title=re.findall('<h4 class="" (*<>) (.*?)</h4>',html)[0]
         replacething=re.findall('_u3000',title)
         for y in replacething:
-            chapter_title=chapter_title.replace(y,' ')
+            title=title.replace(y,' ')
         title=self.validateTitle(title)
         self.setTitle(title)
         return title
 
     def getContent(self,html):
-        from bs4 import BeautifulSoup
 
         #can be made better with soup.id["chapter-content"]
         soup = BeautifulSoup(html)
