@@ -437,6 +437,10 @@ class KakuyomuNovel(Novel):
         #     '<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<', TocHTML)[0]
         return chapter_title
 
+    def parseTocResume(self, html=''):
+        print("no toc resume parser")
+        pass
+
     def parseOnlineChapterList(self, html) -> list:
         soup = BeautifulSoup(html, 'html.parser')
         # print(soup.find_all("a", "widget-toc-chapter"))
