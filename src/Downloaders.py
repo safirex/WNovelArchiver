@@ -7,6 +7,7 @@ import os
 import re
 import sys
 from bs4 import BeautifulSoup
+import warnings
 
 from src.Chapters import *
 
@@ -231,7 +232,7 @@ class Novel(NovelCallbacks,FactoryTarget):
 
     def parseTocResume(self, html=''):
         """ format and interpret the content of the home page of the novel """
-        raise("parseTocResume method is not defined")
+        warnings.warn("This class doesn't have a method to parse the table of content's resume.")
 
     def processNovel(self):
         print("novel " + self.titre)
@@ -436,10 +437,6 @@ class KakuyomuNovel(Novel):
         # chapter_title = re.findall(
         #     '<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<', TocHTML)[0]
         return chapter_title
-
-    def parseTocResume(self, html=''):
-        print("no toc resume parser")
-        pass
 
     def parseOnlineChapterList(self, html) -> list:
         soup = BeautifulSoup(html, 'html.parser')
