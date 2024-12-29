@@ -238,7 +238,7 @@ class Novel(NovelCallbacks,FactoryTarget):
         print("novel " + self.titre)
         print('last chapter: ' + str(self.getLastChapter()))
         try:
-            html = self.fetchTOCPage();
+            html = self.fetchTOCPage()
         except  requests.HTTPError :
             print("can't acces the novel TOC page")
             return ''
@@ -263,8 +263,8 @@ class Novel(NovelCallbacks,FactoryTarget):
     def processChapter(self, chapList):
         """ download every chapter of the list """
         for chapter_num in chapList:
-                chap = self.getChapter(chapter_num)
-                chap.createFile(self.dir + '/')
+            chap = self.getChapter(chapter_num)
+            chap.createFile(self.dir + '/')
         pass
     
     def getChapter(self,chapter_num) ->Chapter:
@@ -328,16 +328,29 @@ class SyosetuNovel(Novel):
         print("fin update")
 
     def parseOnlineChapterList(self, html='') -> list:
+        online_chapter_list = []
+        done = False
         if html == '':
             html = self.html
-        online_chapter_list = re.findall(
-            r'<a href="/' + self.code + '/' + '(.*?)' + '/">.*?</a>', html, re.S)
-        if (online_chapter_list is None or len(online_chapter_list) == 0):
+        while not done:
+            soup = BeautifulSoup(html)
+            online_chapter_list += soup.findAll(href=re.compile('/' + self.code + '/(?!\?p=)\d' ))
+            nextPage =  soup.findAll(href=re.compile('/' + self.code + '/\?p=.' ))
+            nextPage =  list(filter( lambda x: "c-pager__item--next" in  x['class'], nextPage))
+            if nextPage :
+                nextPageNum = re.split('\?p=',nextPage[0]['href'])[1]
+                html = self.fetchTOCPage(nextPageNum)
+            else:
+                done = True
+        chap_num_list = list(map(lambda x: re.split('/',x['href'][:-1])[-1], online_chapter_list))
+        if (chap_num_list is None or len(chap_num_list) == 0):
             print("the novel has most likely been terminated\n")
-        return online_chapter_list
-
-    def fetchTOCPage(self):
+        return chap_num_list
+    
+    def fetchTOCPage(self, page=0):
         url = self.url
+        if page !=0:
+            url += "?p="+page
         headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"
         }
@@ -381,11 +394,12 @@ class SyosetuNovel(Novel):
         rstr = r"[\/\\\:\*\?\"\<\>\|]"
         new_title = re.sub(rstr, "_", title)
         return new_title
+    
     def parseTitle(self, TocHTML) -> str:
-
-        writer = re.findall(r'<p class="novel_title">(.*?)</p>', TocHTML, re.S)
-        print('title = '+str(writer))
-        return writer[0]
+        # testTitle = BeautifulSoup(TocHTML, 'html').find('h1')
+        writer = re.match(r'<p class="novel_title">(.*?)</p>', TocHTML, re.S)
+        title = writer if writer else '' 
+        return title
 
         
 

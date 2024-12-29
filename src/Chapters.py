@@ -81,8 +81,7 @@ class Chapter():
 
     def createFile(self, path):
         chapter_title=checkFileName(self.title)
-        print("titre"+chapter_title)
-        print('saving '+str(self.num)+' '+chapter_title)
+        print('Saving chapter', self.num, chapter_title)
         
         file = open('%s/%s_%s.txt'%(path,self.num,chapter_title), 'w+', encoding='utf-8')
         file.write(chapter_title+'\n')
@@ -126,18 +125,20 @@ class SyosetuChapter(Chapter):
 
     def setUrl(self):
         self.url='https://ncode.syosetu.com/%s/%s/'%(self.novelNum,self.num)
-
+        
     def parseTitle(self, html) -> str:
         soup = BeautifulSoup(html, 'html.parser')
-        title = soup.find("p","novel_subtitle").text
+        titlediv = soup.find("h1")
+        title = titlediv.text if titlediv else ""
         return title
     
     def parseContent(self,html):
-        chapter_content=re.findall(r'<div id="novel_honbun" class="novel_view">(.*?)</div>',html,re.S)[0]
-        replacething=re.findall(r'<p id=' + '.*?' + '>', chapter_content)
-        for y in replacething:
-            chapter_content=chapter_content.replace(y,'')
-        chapter_content=self.cleanText(chapter_content)
+        soup = BeautifulSoup(html, 'html.parser')
+        contentDiv = soup.find('div',"p-novel__body")
+        if contentDiv : 
+            chapter_content = contentDiv.text
+        else:
+            raise BaseException("couldn't retrieve the content of the chapter")
         self.setContent(chapter_content)
         return chapter_content
 

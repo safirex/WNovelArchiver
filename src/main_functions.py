@@ -22,32 +22,36 @@ def archiveUpdate(dirList=[],keep_text_format=False):
     print(dirList)
 
     for novel_folder in dirList:
-        print()
-        novelInfo=getNovelInfoFromFolderName(novel_folder)
-        #change the fetching process following the site it's hosted on
-        novel = factory.getNovel(novelInfo[1],novelInfo[0], keep_text_format)
-        #novel=Novel(novelInfo[1],novelInfo[0],keep_text_format)
-        #novel=novel.updateObject()
-        if(novel==0):
-            print(novel_folder+' couldnt be updated because the code doesnt match known formats')
-            continue
+        try:
+            print()
+            novelInfo=getNovelInfoFromFolderName(novel_folder)
+            #change the fetching process following the site it's hosted on
+            novel = factory.getNovel(novelInfo[1],novelInfo[0], keep_text_format)
+            #novel=Novel(novelInfo[1],novelInfo[0],keep_text_format)
+            #novel=novel.updateObject()
+            if(novel==0):
+                print(novel_folder+' couldnt be updated because the code doesnt match known formats')
+                continue
 
-        #now we fetch the local chapters and determine the last chapter stored
-        chapter_list=os.listdir('./novel_list/%s'%novel_folder)
-        last_downloaded=0
-        for chap in chapter_list:
-            n=chap.find('_')
-            tmp=chap[:n]
-            tmp=int(tmp)
-            if(last_downloaded<tmp):
-                last_downloaded=tmp
-        novel.setLastChapter(last_downloaded)
-        #now that we have the number of the last chapter and the novel code
+            #now we fetch the local chapters and determine the last chapter stored
+            chapter_list=os.listdir('./novel_list/%s'%novel_folder)
+            last_downloaded=0
+            for chap in chapter_list:
+                n=chap.find('_')
+                tmp=chap[:n]
+                tmp=int(tmp)
+                if(last_downloaded<tmp):
+                    last_downloaded=tmp
+            novel.setLastChapter(last_downloaded)
+            #now that we have the number of the last chapter and the novel code
 
-        #let's update the archive
-        novel.setDir('./novel_list/'+novel_folder)
-        print(type(novel))
-        novel.processNovel()
+            #let's update the archive
+            novel.setDir('./novel_list/'+novel_folder)
+            print(type(novel))
+            novel.processNovel()
+        except BaseException as error:
+            print(error)
+            print('An error happened while updating the folder', novel_folder)
 
 
 def archiveFullUpdate(dirList=[],force=False):
