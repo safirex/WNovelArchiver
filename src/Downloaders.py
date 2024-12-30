@@ -376,7 +376,7 @@ class SyosetuNovel(Novel):
             self.createFile(0, 'TOC', resume)
     
     def parseTocResume(self, html):
-        soup = BeautifulSoup(html, 'html.parser').find("h1")
+        soup = BeautifulSoup(html, 'html.parser').find("div", id="novel_ex")
         print("soup ",soup.text)
         return soup.text if soup else ""
         # resume=re.findall('<div id="novel_ex">'+'(.*?)'+'</div>',html,re.S)[0]
@@ -431,10 +431,6 @@ class KakuyomuNovel(Novel):
     def parseTitle(self, TocHTML):
         soup = BeautifulSoup(TocHTML,'html.parser')
         chapter_title =soup.find('h1',id='workTitle').text
-        # print(soup.find('h1',class_='workTitle'))
-
-        # chapter_title = re.findall(
-        #     '<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<', TocHTML)[0]
         return chapter_title
 
     def parseOnlineChapterList(self, html) -> list:
