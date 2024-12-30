@@ -2,7 +2,7 @@ import os
 import re
 import logging
 from typing import List
-
+import traceback
 from src.Downloaders import *
 import zipfile
 
@@ -18,8 +18,7 @@ factory.registerObject( KakuyomuNovel   )
 def archiveUpdate(dirList=[],keep_text_format=False):
     if not dirList:
         dirList=os.listdir('./novel_list')
-    print("list=")
-    print(dirList)
+    print("novel folders found =", dirList)
 
     for novel_folder in dirList:
         try:
@@ -49,8 +48,8 @@ def archiveUpdate(dirList=[],keep_text_format=False):
             novel.setDir('./novel_list/'+novel_folder)
             print(type(novel))
             novel.processNovel()
-        except BaseException as error:
-            print(error)
+        except BaseException:
+            print(traceback.format_exc())
             print('An error happened while updating the folder', novel_folder)
 
 
@@ -108,8 +107,6 @@ def archiveFullUpdate(dirList=[],force=False):
         #let's update the archive
         novel.processNovel()
 
-
-
 def getInputFile() -> List[str]:
     """return code and novel name from input.txt"""
     inputfile=open('input.txt','r+', encoding='utf-8')
@@ -149,7 +146,6 @@ def download(keep_text_format=False):
         title=novel_info[1]
         #print('i '+title)
         
-        print('Working on:', code, 'Title:', title, 'Keep Format:', keep_text_format)
         #novel=Novel(code,name,keep_text_format)
         #novel=novel.updateObject()
         novel = factory.getNovel(code, title, keep_text_format)
@@ -194,7 +190,6 @@ def download(keep_text_format=False):
             # log.exception("")
             print("novel ",code," hasn't been downloaded" )
             raise(err)
-
 
 def download_cli(userInput:str):
     novel_info = userInput.strip().split(';')

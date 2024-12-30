@@ -230,7 +230,7 @@ class Novel(NovelCallbacks,FactoryTarget):
         """parse the list of chapters from the HTML of the TOC page"""
         raise("parseOnlineChapterList method is not defined")
 
-    def parseTocResume(self, html=''):
+    def parseTocResume(self, html='') -> str:
         """ format and interpret the content of the home page of the novel """
         warnings.warn("This class doesn't have a method to parse the table of content's resume.")
 
@@ -246,7 +246,10 @@ class Novel(NovelCallbacks,FactoryTarget):
         online_chapter_list = self.parseOnlineChapterList(html)
         if (self.getLastChapter() == 0):
             resumeContent = self.parseTocResume(html)
-            # self.save("0_TOC",resumeContent)
+            print('content of resume', resumeContent)
+            
+            if resumeContent:
+                self.createFile(0,"TOC", resumeContent)
         if (len(online_chapter_list) >= 1):
 
             # get the chapters url
@@ -258,9 +261,10 @@ class Novel(NovelCallbacks,FactoryTarget):
             # will add new files for every revised chapters
             self.updatePerDate(html)
         else:
+            print("No chapters were found")
             print("this web novel has most likely been terminated")
             
-    def processChapter(self, chapList):
+    def processChapter(self, chapList:list):
         """ download every chapter of the list """
         for chapter_num in chapList:
             chap = self.getChapter(chapter_num)
@@ -328,13 +332,13 @@ class SyosetuNovel(Novel):
         print("fin update")
 
     def parseOnlineChapterList(self, html='') -> list:
-        online_chapter_list = []
+        chap_num_list = []
         done = False
         if html == '':
             html = self.html
         while not done:
             soup = BeautifulSoup(html,"html.parser")
-            online_chapter_list += soup.findAll(href=re.compile('/' + self.code + '/(?!\?p=)\d' ))
+            chap_num_list += re.findall('href="/' + self.code + '/(\d+)/"' ,html)
             nextPage =  soup.findAll(href=re.compile('/' + self.code + '/\?p=.' ))
             nextPage =  list(filter( lambda x: "c-pager__item--next" in  x['class'], nextPage))
             if nextPage :
@@ -342,7 +346,7 @@ class SyosetuNovel(Novel):
                 html = self.fetchTOCPage(nextPageNum)
             else:
                 done = True
-        chap_num_list = list(map(lambda x: re.split('/',x['href'][:-1])[-1], online_chapter_list))
+        
         if (chap_num_list is None or len(chap_num_list) == 0):
             print("the novel has most likely been terminated\n")
         return chap_num_list
@@ -354,16 +358,15 @@ class SyosetuNovel(Novel):
         headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"
         }
+        print("fetching ",url)
         rep = requests.get(url, headers=headers)
         rep.encoding = 'utf-8'
         html = rep.text
         self.html = html
         return html
 
-    def parseTocResume(self, html):
-        soup = BeautifulSoup(html, 'html.parser')
-        resume = soup.find("div", id="novel_ex")
-        # resume=re.findall('<div id="novel_ex">'+'(.*?)'+'</div>',html,re.S)[0]
+    def processTocResume(self,html):
+        resume = self.parseTocResume(html)
         if (resume is None):
             print("the novel has most likely been terminated")
         else:
@@ -371,6 +374,13 @@ class SyosetuNovel(Novel):
             string = 'novel title= ' + self.getNovelTitle(html) + '\n\n'
             resume.insert(0, string)
             self.createFile(0, 'TOC', resume)
+    
+    def parseTocResume(self, html):
+        soup = BeautifulSoup(html, 'html.parser').find("h1")
+        print("soup ",soup.text)
+        return soup.text if soup else ""
+        # resume=re.findall('<div id="novel_ex">'+'(.*?)'+'</div>',html,re.S)[0]
+       
 
     def getChapter(self, chapter_num):
         chapter = SyosetuChapter(self.code, chapter_num)
@@ -396,33 +406,8 @@ class SyosetuNovel(Novel):
         return new_title
     
     def parseTitle(self, TocHTML) -> str:
-        # testTitle = BeautifulSoup(TocHTML, 'html').find('h1')
-        writer = re.match(r'<p class="novel_title">(.*?)</p>', TocHTML, re.S)
-        title = writer if writer else '' 
-        return title
-
-        
-
-
-def test():
-    import os
-
-    x = Novel('n6912eh', 'My Skills Are Too Strong to Be a Heroine')
-
-    x = x.updateObject()
-    x.setLastChapter(0)
-    print(x)
-    name = x.titre
-    print(name)
-    path = './novel_list/' + x.code + ' ' + name
-    print(path)
-
-    print("dir=  " + path)
-    # dir='./novel_list/'+code+' '+name
-    x.setDir(path)
-    x.setLastChapter(145)
-    x.processNovel()
-
+        testTitle = BeautifulSoup(TocHTML, 'html').find('h1')
+        return testTitle.text
 
 class KakuyomuNovel(Novel):
     def __init__(self, code, title, keep_text_format):
@@ -527,7 +512,7 @@ class N18SyosetuNovel(Novel):
         if (self.getLastChapter() == 0):
             self.processTocResume(html)
         # get the number of chapters (solely for user feedback)
-        online_chapter_list = re.findall('href="/' + self.code + '/(\d+)/"', html)
+        online_chapter_list = self.parseOnlineChapterList(html)
 
         lastDL = self.getLastChapter()
         online_chapter_list = online_chapter_list[lastDL:]
@@ -538,9 +523,25 @@ class N18SyosetuNovel(Novel):
             chap = self.processChapter(int(chapter_num))
             chap.createFile(self.dir + '/')
 
+    def parseOnlineChapterList(self, html):
+        online_chapter_list = []
+        done = False
+        if html == '':
+            html = self.html
+        while not done:
+            soup = BeautifulSoup(html,"html.parser")
+            online_chapter_list += re.findall('href="/' + self.code + '/(\d+)/"', html)
+            nextPage =  soup.findAll(href=re.compile('/' + self.code + '/\?p=.' ))
+            nextPage =  list(filter( lambda x: "c-pager__item--next" in  x['class'], nextPage))
+            if nextPage :
+                nextPageNum = re.split('\?p=',nextPage[0]['href'])[1]
+                html = self.fetchTOCPage(int(nextPageNum))
+            else:
+                done = True
+        return  online_chapter_list
+
     def processTocResume(self, html):
-        soup = BeautifulSoup(html, 'html.parser')
-        resume = soup.find("div", id="novel_ex")
+        resume = self.parseTocResume(html)
         # resume=re.findall('<div id="novel_ex">'+'(.*?)'+'</div>',html,re.S)[0]
         if (resume is None):
             print("the novel has most likely been terminated")
@@ -549,7 +550,11 @@ class N18SyosetuNovel(Novel):
             string = 'novel title= ' + self.getNovelTitle(html) + '\n\n'
             resume.insert(0, string)
             self.createFile(0, 'TOC', resume)
-
+            
+    def parseTocResume(self, html ):
+        soup = BeautifulSoup(html, 'html.parser')
+        return soup.find("div", id="novel_ex")
+    
     def processChapter(self, chapter_num):
         chapter = N18SyosetuChapter(self.code, chapter_num)
         chapter_html = self.connectViaMechanize(
@@ -571,9 +576,9 @@ class N18SyosetuNovel(Novel):
 
         if (html == ''):
             html = self.connectViaMechanize(url)
-        writer = re.findall(r'<p class="novel_title">(.*?)</p>', html)
+        writer = BeautifulSoup( html,"html.parser").find('h1')
         # print(writer)
-        return writer[0]
+        return writer.text if writer else ''
 
     def __createFile__(self, chapterNumber, chapter_title, chapter_content):
         chapter_title = checkFileName(chapter_title)
@@ -586,8 +591,11 @@ class N18SyosetuNovel(Novel):
         print('\n\n')
 
     
-    def fetchTOCPage(self):
-        return self.connectViaMechanize(self.url)
+    def fetchTOCPage(self, page=0):
+        url = self.url
+        if page > 0:
+            url += "?p="+ str(page)
+        return self.connectViaMechanize(url)
 
     def connectViaMechanize(self, url):
         import http.cookiejar as cookielib
