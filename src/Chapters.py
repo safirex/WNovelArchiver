@@ -151,18 +151,19 @@ class N18SyosetuChapter(SyosetuChapter,Chapter):
         self.url='https://novel18.syosetu.com/%s/%s/'%(self.novelNum,self.num)
 
     def parseContent(self,html):
-        chapter_content=re.findall(r'<div class="novel_view" id="novel_honbun">(.*?)</div>',html,re.S)[0]
-        replacething=re.findall(r'<p id=' + '.*?' + '>', chapter_content)
-        for y in replacething:
-            chapter_content=chapter_content.replace(y,'')
-        chapter_content=self.cleanText(chapter_content)
+        content = BeautifulSoup(html,'html.parser').find('div','p-novel__body')
+        if content:
+            chapter_content = content.text
+        else :
+            raise Exception("failed to parse the chapter content")
+            
         self.setContent(chapter_content)
         return chapter_content
 
         
     def parseTitle(self, html) -> str:
         soup = BeautifulSoup(html, 'html.parser')
-        title = soup.find("p","novel_subtitle").text
+        title = soup.find("h1").text
         return title
 
     def createFile(self, path):
@@ -185,7 +186,7 @@ class WuxiaWorldChapter(Chapter):
         self.url=url
 
     def getTitle(self,html):
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html,"html.parser")
         title=''
         for h in soup.find_all('title'):
             title=h.string
@@ -201,7 +202,7 @@ class WuxiaWorldChapter(Chapter):
     def getContent(self,html):
 
         #can be made better with soup.id["chapter-content"]
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, "html.parser")
         chapter_content=''
         for div in soup.find_all('div'):
             id=div.get("id")

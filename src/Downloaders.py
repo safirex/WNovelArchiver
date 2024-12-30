@@ -333,7 +333,7 @@ class SyosetuNovel(Novel):
         if html == '':
             html = self.html
         while not done:
-            soup = BeautifulSoup(html)
+            soup = BeautifulSoup(html,"html.parser")
             online_chapter_list += soup.findAll(href=re.compile('/' + self.code + '/(?!\?p=)\d' ))
             nextPage =  soup.findAll(href=re.compile('/' + self.code + '/\?p=.' ))
             nextPage =  list(filter( lambda x: "c-pager__item--next" in  x['class'], nextPage))
@@ -527,10 +527,8 @@ class N18SyosetuNovel(Novel):
         if (self.getLastChapter() == 0):
             self.processTocResume(html)
         # get the number of chapters (solely for user feedback)
-        online_chapter_list = re.findall(
-            '<a href="/' + self.code + '/' + '(.*?)' + '/">', html, re.DOTALL)
+        online_chapter_list = re.findall('href="/' + self.code + '/(\d+)/"', html)
 
-        print('<href="/' + self.code + '/' + '(.*?)' + '/">')
         lastDL = self.getLastChapter()
         online_chapter_list = online_chapter_list[lastDL:]
         print("there are %d chapters to udpate" % len(online_chapter_list))
@@ -555,7 +553,8 @@ class N18SyosetuNovel(Novel):
     def processChapter(self, chapter_num):
         chapter = N18SyosetuChapter(self.code, chapter_num)
         chapter_html = self.connectViaMechanize(
-            '%s/%s/%s/' % (self.site, self.code, chapter_num))
+            '%s/%s/%s/' % (self.site, self.code, chapter_num)
+        )
         chapter.setTitle(chapter.parseTitle(chapter_html))
         chapter.setContent(chapter.parseContent(chapter_html))
         return chapter
