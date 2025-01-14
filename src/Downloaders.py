@@ -242,15 +242,17 @@ class Novel(NovelCallbacks,FactoryTarget):
         except  requests.HTTPError :
             print("can't acces the novel TOC page")
             return ''
-        # get the number of chapters (solely for user feedback)
+        # get the number of chapters 
         online_chapter_list = self.parseOnlineChapterList(html)
-        if (self.getLastChapter() == 0):
-            resumeContent = self.parseTocResume(html)
-            print('content of resume', resumeContent)
-            
-            if resumeContent:
-                self.createFile(0,"TOC", resumeContent)
         if (len(online_chapter_list) >= 1):
+            
+            # create a file for the resume if no chapter
+            if (self.getLastChapter() == 0):
+                resumeContent = self.parseTocResume(html)
+                print('content of resume', resumeContent)
+                
+                if resumeContent:
+                    self.createFile(0,"TOC", resumeContent)
 
             # get the chapters url
             lastDL = self.getLastChapter()
@@ -411,6 +413,7 @@ class SyosetuNovel(Novel):
 
 class KakuyomuNovel(Novel):
     def __init__(self, code, title, keep_text_format):
+        raise("KakuyomuNovel is not implemented")
         super().__init__(code, title, keep_text_format)
 
     @staticmethod
