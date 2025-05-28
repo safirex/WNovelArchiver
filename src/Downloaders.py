@@ -413,7 +413,7 @@ class SyosetuNovel(Novel):
 
 class KakuyomuNovel(Novel):
     def __init__(self, code, title, keep_text_format):
-        raise("KakuyomuNovel is not implemented")
+        #raise("KakuyomuNovel is not implemented")
         super().__init__(code, title, keep_text_format)
 
     @staticmethod
