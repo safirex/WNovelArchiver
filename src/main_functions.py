@@ -6,6 +6,7 @@ import traceback
 from src.Downloaders import *
 import zipfile
 
+KakuyomuNovel = newKakuyomuNovel
 
 factory = NovelFactory()
 

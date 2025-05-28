@@ -464,6 +464,21 @@ class KakuyomuNovel(Novel):
         chap.processChapter(self.headers)
         return chap
 
+class newKakuyomuNovel(KakuyomuNovel):
+
+    def parseOnlineChapterList(self, html) -> list:
+        chaps_pattern = r'<a\s+[^>]*class="WorkTocSection_link__ocg9K[^"]*"[^>]*href="([^"]*)"'
+        chapList = []
+        if (chapList := re.findall(chaps_pattern, html)):
+            chapList[:] = ['https://kakuyomu.jp' + ch for ch in chapList]
+        self.onlineChapterList = chapList
+        return chapList
+
+    def parseTitle(self, TocHTML) -> str:
+        soup = BeautifulSoup(TocHTML,'html.parser')
+        work_title = soup.title.string
+        return work_title
+
 
 
 class N18SyosetuNovel(Novel):
