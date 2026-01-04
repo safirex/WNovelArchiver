@@ -431,7 +431,7 @@ class KakuyomuNovel(Novel):
         # This can be called in any order and needs to determine if this code is valid for this site.
         if (len(code) == len('1177354054888541019') or
               len(code) == len('16816452219449457673')):
-            return KakuyomuNovel.getSiteId()#KakuyomuNovel(code, title, keep_text_format)
+            return KakuyomuNovel.getSiteId()
         return 0
 
     def setUrl(self):
@@ -486,15 +486,11 @@ class KakuyomuNovel(Novel):
         self.onlineChapterList = chapList
         return chapList
 
-    # def getChapterTitle(self, name): 
-    #     chapter_title = re.findall(
-    #         '<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<', name)[0]
-    #     return chapter_title
-    # didnt need so i commented it out
-
     def getChapter(self,chapter_num) ->Chapter:
-        # workaround because of absolute kakyomu's absolute links
-        chap =KakyomuChapter(self.onlineChapterList.index(chapter_num),chapter_num)
+        # workaround because of kakuyomu's absolute links
+        #add 1 to chapter index as TOC is not retrieved and mess up with update detection (chapter 0 is chapter one instead of TOC)
+        #TODO: fix TOC retrieval
+        chap =KakyomuChapter(self.onlineChapterList.index(chapter_num)+1,chapter_num)
         chap.processChapter(self.headers)
         return chap
 
