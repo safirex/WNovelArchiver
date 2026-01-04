@@ -413,7 +413,13 @@ class SyosetuNovel(Novel):
 
 class KakuyomuNovel(Novel):
     def __init__(self, code, title, keep_text_format):
-        raise("KakuyomuNovel is not implemented")
+        self.GRAPHQL_URL = "https://kakuyomu.jp/graphql"
+        self.session = requests.Session()
+        self.session.headers.update({
+            "content-type": "application/json",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+        })
+
         super().__init__(code, title, keep_text_format)
 
     @staticmethod
@@ -425,46 +431,68 @@ class KakuyomuNovel(Novel):
         # This can be called in any order and needs to determine if this code is valid for this site.
         if (len(code) == len('1177354054888541019') or
               len(code) == len('16816452219449457673')):
-            return KakuyomuNovel.getSiteId()#KakuyomuNovel(code, title, keep_text_format)
+            return KakuyomuNovel.getSiteId()
         return 0
 
     def setUrl(self):
         self.url = 'https://kakuyomu.jp/works/%s' % self.code
+        
+    def graphql(self, operation, query, variables):
+        r = self.session.post(self.GRAPHQL_URL, json={
+            "operationName": operation,
+            "query": query,
+            "variables": variables
+        })
+        r.raise_for_status()
+        data = r.json()
+        if "errors" in data:
+            raise RuntimeError(data["errors"])
+        return data["data"]
 
     def parseTitle(self, TocHTML):
-        soup = BeautifulSoup(TocHTML,'html.parser')
-        chapter_title =soup.find('h1',id='workTitle').text
-        return chapter_title
+        query = """
+        query GetWorkInfo($workId: ID!) {
+            work(id: $workId) {
+                title
+            }
+        }
+        """
+        data = self.graphql("GetWorkInfo", query, {"workId": self.code})
+        self.work_data = data["work"]
+        return self.work_data['title']
 
     def parseOnlineChapterList(self, html) -> list:
-        soup = BeautifulSoup(html, 'html.parser')
-        # print(soup.find_all("a", "widget-toc-chapter"))
-        # print("end")
-        soup = soup.find('div', "widget-toc-main")
-        regex = str(self.code) + "/episodes/"
-        # regex = '/episodes/">(?P<num>.*?)</a>'
+        query = """
+        query GetWorkToc($workId: ID!) {
+          work(id: $workId) {
+            tableOfContents {
+              episodeUnions {
+                ... on Episode {
+                  id
+                }
+              }
+            }
+          }
+        }
+        """
+        data = self.graphql("GetWorkToc", query, {"workId": self.code})
+        
         chapList = []
-        if (soup is not None):
-            chapList = soup.find_all(href=re.compile(regex))
-
-            for i in range(0, len(chapList)):
-                # list should contain links and not number because can't be found from relative way
-                chapList[i] ='https://kakuyomu.jp' +  str(chapList[i].get('href'))
-        self.onlineChapterList  = chapList
+        for section in data["work"]["tableOfContents"]:
+            for ep in section["episodeUnions"]:
+                episode_url = f'https://kakuyomu.jp/works/{self.code}/episodes/{ep["id"]}'
+                chapList.append(episode_url)
+        
+        self.onlineChapterList = chapList
         return chapList
 
-    def getChapterTitle(self, name): 
-        chapter_title = re.findall(
-            '<p class="widget-episodeTitle js-vertical-composition-item">(.*?)<', name)[0]
-        return chapter_title
-    
     def getChapter(self,chapter_num) ->Chapter:
-        # workaround because of absolute kakyomu's absolute links
-        chap =KakyomuChapter(self.onlineChapterList.index(chapter_num),chapter_num)
+        # workaround because of kakuyomu's absolute links
+        #add 1 to chapter index as TOC is not retrieved and mess up with update detection (chapter 0 is chapter one instead of TOC)
+        #TODO: fix TOC retrieval
+        chap =KakyomuChapter(self.onlineChapterList.index(chapter_num)+1,chapter_num)
         chap.processChapter(self.headers)
         return chap
-
-
 
 class N18SyosetuNovel(Novel):
     
